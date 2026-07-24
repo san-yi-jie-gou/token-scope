@@ -45,3 +45,7 @@ make run
 ```
 
 To install locally, build Release in Xcode and move `TokenScope.app` to `/Applications`.
+
+## License
+
+TokenScope is open source under the MIT License. See [LICENSE](LICENSE).
