@@ -13,7 +13,7 @@
 
 ## 支持范围
 
-当前支持 Codex、Claude Code、CC Switch、Kimi Code、Oh My Pi、OpenCode 与 Gemini CLI。各工具日志格式变化时，TokenScope 可能需要更新解析器。
+当前支持 Codex、Claude Code、CC Switch、Kimi Code、Oh My Pi、OpenCode、Gemini CLI、GitHub Copilot、Cursor、Qoder、Windsurf、Cline 与 Trae。各工具日志格式变化时，TokenScope 可能需要更新解析器；部分工具仅在本地日志包含明确 Token 用量字段时显示。
 
 ## 联系方式
 

@@ -10,6 +10,12 @@ struct UsageSource: Hashable, Codable, Identifiable {
     static let omp = UsageSource(id: "omp", displayName: "OMP")
     static let openCode = UsageSource(id: "opencode", displayName: "OpenCode")
     static let gemini = UsageSource(id: "gemini", displayName: "Gemini")
+    static let copilot = UsageSource(id: "copilot", displayName: "Copilot")
+    static let cursor = UsageSource(id: "cursor", displayName: "Cursor")
+    static let qoder = UsageSource(id: "qoder", displayName: "Qoder")
+    static let windsurf = UsageSource(id: "windsurf", displayName: "Windsurf")
+    static let cline = UsageSource(id: "cline", displayName: "Cline")
+    static let trae = UsageSource(id: "trae", displayName: "Trae")
 }
 
 struct TokenBreakdown: Equatable, Codable {

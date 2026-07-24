@@ -8,6 +8,12 @@ TokenScope is a small native macOS desktop panel that aggregates local token usa
 - Oh My Pi: `~/.pi/agent/sessions/`
 - OpenCode: `~/.local/share/opencode/storage/session/` plus active-session messages
 - Gemini CLI: `~/.gemini/tmp/**/chats/`
+- GitHub Copilot: `~/.copilot/` and VS Code Copilot chat storage
+- Cursor: `~/Library/Application Support/Cursor/User/globalStorage/`
+- Qoder: `~/.qoder/` and Qoder app storage
+- Windsurf: `~/Library/Application Support/Windsurf/User/globalStorage/`
+- Cline: VS Code Cline extension storage
+- Trae: `~/Library/Application Support/Trae/User/globalStorage/`
 
 It reads only usage metadata. Prompt text, model responses, OAuth data, API keys, and provider configuration are not persisted or displayed.
 
@@ -27,7 +33,7 @@ The Mac App Store build runs in the App Sandbox. On first launch, select your pe
 
 The system widget reads only aggregate usage from the main app over a localhost-only bridge. Keep TokenScope running (or enable login startup) so the widget remains current. No prompt text, model output, or account configuration is transmitted.
 
-Codex cumulative counters are converted to deltas. Claude Code streaming duplicates are deduplicated by message id. Kimi Code counts only `usage.record` entries with `usageScope: turn`.
+Codex cumulative counters are converted to deltas. Claude Code streaming duplicates are deduplicated by message id. Kimi Code counts only `usage.record` entries with `usageScope: turn`. Copilot, Cursor, Qoder, Windsurf, Cline, and Trae use best-effort local JSON/JSONL usage extraction and only count records with explicit token usage fields.
 
 ## Build
 

@@ -225,32 +225,13 @@ struct OpenCodeUsageParser: UsageLogParser {
     let rootURL: URL
 
     func accepts(_ url: URL) -> Bool {
-        url.pathExtension == "json" && url.lastPathComponent.hasPrefix("ses_")
+        url.pathExtension == "json"
+            && url.lastPathComponent.hasPrefix("msg_")
+            && url.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent == "message"
     }
 
     func parse(_ url: URL) throws -> [UsageEvent] {
-        if url.lastPathComponent.hasPrefix("msg_") {
-            return try parseMessage(url)
-        }
-
-        let data = try Data(contentsOf: url)
-        guard let session = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let sessionID = session.string("id") else {
-            return []
-        }
-
-        let storageRoot = rootURL.deletingLastPathComponent()
-        let messageDirectory = storageRoot
-            .appendingPathComponent("message", isDirectory: true)
-            .appendingPathComponent(sessionID, isDirectory: true)
-        let messageFiles = (try? FileManager.default.contentsOfDirectory(
-            at: messageDirectory,
-            includingPropertiesForKeys: nil,
-            options: [.skipsHiddenFiles]
-        )) ?? []
-        return try messageFiles
-            .filter { $0.pathExtension == "json" && $0.lastPathComponent.hasPrefix("msg_") }
-            .flatMap(parseMessage)
+        try parseMessage(url)
     }
 
     private func parseMessage(_ url: URL) throws -> [UsageEvent] {
@@ -336,5 +317,347 @@ struct GeminiUsageParser: UsageLogParser {
                 costUSD: nil
             )
         }
+    }
+}
+
+struct GenericUsageLogParser: UsageLogParser {
+    let source: UsageSource
+    let rootURL: URL
+    let provider: String
+    let modelFallback: String
+
+    func accepts(_ url: URL) -> Bool {
+        let fileExtension = url.pathExtension.lowercased()
+        guard ["json", "jsonl", "log"].contains(fileExtension) else { return false }
+
+        let path = url.path.lowercased()
+        let usageHints = [
+            "usage",
+            "token",
+            "session",
+            "chat",
+            "conversation",
+            "history",
+            "message",
+            "request",
+            "response",
+            "task",
+            "chronicle"
+        ]
+        return usageHints.contains { path.contains($0) }
+    }
+
+    func parse(_ url: URL) throws -> [UsageEvent] {
+        let fileDate = fileTimestamp(url)
+        var eventsByID: [String: UsageEvent] = [:]
+
+        if url.pathExtension.lowercased() == "json" {
+            let data = try Data(contentsOf: url)
+            let root = try JSONSerialization.jsonObject(with: data)
+            collectEvents(
+                from: root,
+                context: GenericUsageContext(timestamp: fileDate, provider: provider, model: modelFallback),
+                url: url,
+                breadcrumb: "root",
+                eventsByID: &eventsByID
+            )
+        } else {
+            try JSONLineReader.forEachObject(at: url) { object, lineNumber in
+                collectEvents(
+                    from: object,
+                    context: GenericUsageContext(timestamp: fileDate, provider: provider, model: modelFallback),
+                    url: url,
+                    breadcrumb: "line-\(lineNumber)",
+                    eventsByID: &eventsByID
+                )
+            }
+        }
+
+        return Array(eventsByID.values)
+    }
+
+    private func collectEvents(
+        from value: Any,
+        context: GenericUsageContext,
+        url: URL,
+        breadcrumb: String,
+        depth: Int = 0,
+        eventsByID: inout [String: UsageEvent]
+    ) {
+        guard depth <= 7 else { return }
+
+        if let array = value as? [Any] {
+            for (index, item) in array.enumerated() {
+                collectEvents(
+                    from: item,
+                    context: context,
+                    url: url,
+                    breadcrumb: "\(breadcrumb).\(index)",
+                    depth: depth + 1,
+                    eventsByID: &eventsByID
+                )
+            }
+            return
+        }
+
+        guard let object = value as? [String: Any] else { return }
+        let localContext = context.merging(object: object)
+
+        for key in GenericUsageNormalizer.usageKeys {
+            guard let usage = object.dictionary(key),
+                  let tokens = GenericUsageNormalizer.tokens(from: usage),
+                  tokens.total > 0 else {
+                continue
+            }
+
+            let eventID = genericEventID(
+                object: object,
+                url: url,
+                breadcrumb: "\(breadcrumb).\(key)"
+            )
+            let event = UsageEvent(
+                id: eventID,
+                timestamp: localContext.timestamp,
+                source: source,
+                provider: usage.string("provider") ?? localContext.provider,
+                model: usage.string("model") ?? usage.string("modelID") ?? localContext.model,
+                tokens: tokens,
+                costUSD: usage.double("cost") ?? usage.double("totalCost") ?? object.double("cost")
+            )
+            insertLargest(event, into: &eventsByID)
+        }
+
+        if GenericUsageNormalizer.looksLikeUsageObject(object),
+           let tokens = GenericUsageNormalizer.tokens(from: object),
+           tokens.total > 0 {
+            let event = UsageEvent(
+                id: genericEventID(object: object, url: url, breadcrumb: breadcrumb),
+                timestamp: localContext.timestamp,
+                source: source,
+                provider: localContext.provider,
+                model: localContext.model,
+                tokens: tokens,
+                costUSD: object.double("cost") ?? object.double("totalCost")
+            )
+            insertLargest(event, into: &eventsByID)
+        }
+
+        for (key, child) in object where !GenericUsageNormalizer.usageKeys.contains(key) {
+            collectEvents(
+                from: child,
+                context: localContext,
+                url: url,
+                breadcrumb: "\(breadcrumb).\(key)",
+                depth: depth + 1,
+                eventsByID: &eventsByID
+            )
+        }
+    }
+
+    private func genericEventID(object: [String: Any], url: URL, breadcrumb: String) -> String {
+        let stableID = object.string("id")
+            ?? object.string("messageId")
+            ?? object.string("messageID")
+            ?? object.string("requestId")
+            ?? object.string("requestID")
+            ?? object.string("turnId")
+            ?? object.string("turnID")
+            ?? object.string("uuid")
+            ?? breadcrumb
+        return "\(source.id):\(url.path):\(stableID)"
+    }
+
+    private func insertLargest(_ event: UsageEvent, into eventsByID: inout [String: UsageEvent]) {
+        if let existing = eventsByID[event.id], existing.tokens.total > event.tokens.total {
+            return
+        }
+        eventsByID[event.id] = event
+    }
+
+    private func fileTimestamp(_ url: URL) -> Date {
+        (try? url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? Date()
+    }
+}
+
+private struct GenericUsageContext {
+    let timestamp: Date
+    let provider: String
+    let model: String
+
+    func merging(object: [String: Any]) -> GenericUsageContext {
+        GenericUsageContext(
+            timestamp: GenericUsageNormalizer.timestamp(from: object) ?? timestamp,
+            provider: object.string("provider")
+                ?? object.string("providerID")
+                ?? object.string("providerId")
+                ?? provider,
+            model: object.string("model")
+                ?? object.string("modelID")
+                ?? object.string("modelId")
+                ?? object.string("modelName")
+                ?? model
+        )
+    }
+}
+
+private enum GenericUsageNormalizer {
+    static let usageKeys: Set<String> = [
+        "usage",
+        "tokenUsage",
+        "token_usage",
+        "tokens",
+        "usageMetadata",
+        "metrics"
+    ]
+
+    static func tokens(from usage: [String: Any]) -> TokenBreakdown? {
+        let cache = usage.dictionary("cache") ?? usage.dictionary("cacheTokens") ?? [:]
+        let cacheRead = firstInt64(
+            in: usage,
+            keys: [
+                "cacheRead",
+                "cache_read",
+                "cacheReadTokens",
+                "cache_read_tokens",
+                "cachedTokens",
+                "cached_tokens",
+                "cachedInputTokens",
+                "cached_input_tokens",
+                "cache_read_input_tokens",
+                "inputCacheRead",
+                "totalCacheReadTokens",
+                "cacheReads"
+            ]
+        ) + firstInt64(in: cache, keys: ["read", "readTokens", "input"])
+        let cacheWrite = firstInt64(
+            in: usage,
+            keys: [
+                "cacheWrite",
+                "cache_write",
+                "cacheWriteTokens",
+                "cache_write_tokens",
+                "cacheCreationTokens",
+                "cache_creation_tokens",
+                "cache_creation_input_tokens",
+                "inputCacheCreation",
+                "totalCacheWriteTokens",
+                "cacheWrites"
+            ]
+        ) + firstInt64(in: cache, keys: ["write", "writeTokens"])
+        let reasoning = firstInt64(
+            in: usage,
+            keys: [
+                "reasoning",
+                "reasoningTokens",
+                "reasoning_tokens",
+                "reasoningOutputTokens",
+                "reasoning_output_tokens",
+                "thoughts",
+                "thinking"
+            ]
+        )
+        let rawInput = firstInt64(
+            in: usage,
+            keys: [
+                "input",
+                "inputTokens",
+                "input_tokens",
+                "promptTokens",
+                "prompt_tokens",
+                "tokensIn",
+                "tokens_in",
+                "totalInputTokens",
+                "total_input_tokens",
+                "inputOther"
+            ]
+        )
+        let output = firstInt64(
+            in: usage,
+            keys: [
+                "output",
+                "outputTokens",
+                "output_tokens",
+                "completionTokens",
+                "completion_tokens",
+                "tokensOut",
+                "tokens_out",
+                "totalOutputTokens",
+                "total_output_tokens",
+                "responseTokens",
+                "response_tokens"
+            ]
+        )
+        let tokens = TokenBreakdown(
+            input: rawInput,
+            output: output + reasoning,
+            cacheRead: cacheRead,
+            cacheWrite: cacheWrite,
+            reasoning: reasoning
+        )
+
+        guard rawInput > 0 || output > 0 || cacheRead > 0 || cacheWrite > 0 || reasoning > 0 else {
+            return nil
+        }
+        return tokens
+    }
+
+    static func looksLikeUsageObject(_ object: [String: Any]) -> Bool {
+        let keys = Set(object.keys)
+        let tokenKeys: Set<String> = [
+            "input",
+            "inputTokens",
+            "input_tokens",
+            "promptTokens",
+            "prompt_tokens",
+            "output",
+            "outputTokens",
+            "output_tokens",
+            "completionTokens",
+            "completion_tokens",
+            "tokensIn",
+            "tokensOut",
+            "cacheRead",
+            "cacheWrite"
+        ]
+        return !keys.isDisjoint(with: tokenKeys)
+    }
+
+    static func timestamp(from object: [String: Any]) -> Date? {
+        let keys = [
+            "timestamp",
+            "time",
+            "created",
+            "createdAt",
+            "created_at",
+            "completed",
+            "completedAt",
+            "completed_at",
+            "updatedAt",
+            "updated_at",
+            "date",
+            "startTime",
+            "endTime",
+            "ts"
+        ]
+        for key in keys {
+            if let date = LogDateParser.parse(object[key]) {
+                return date
+            }
+        }
+
+        if let time = object.dictionary("time") {
+            return LogDateParser.parse(time["completed"])
+                ?? LogDateParser.parse(time["created"])
+                ?? LogDateParser.parse(time["updated"])
+        }
+        return nil
+    }
+
+    private static func firstInt64(in object: [String: Any], keys: [String]) -> Int64 {
+        for key in keys {
+            let value = object.int64(key)
+            if value > 0 { return value }
+        }
+        return 0
     }
 }

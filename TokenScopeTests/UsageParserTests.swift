@@ -94,6 +94,51 @@ final class UsageParserTests: XCTestCase {
         XCTAssertEqual(events.first?.tokens.input, 70)
     }
 
+    func testGenericParserReadsCopilotStyleUsageJSONL() throws {
+        let file = try fixture(
+            name: "copilot-usage.jsonl",
+            contents: """
+            {"id":"request-1","timestamp":"2026-07-22T08:00:00.000Z","provider":"GitHub","model":"gpt-test","usage":{"promptTokens":100,"completionTokens":20,"cachedTokens":30,"reasoningTokens":5,"totalCost":0.03}}
+            """
+        )
+
+        let events = try GenericUsageLogParser(
+            source: .copilot,
+            rootURL: file.deletingLastPathComponent(),
+            provider: "GitHub",
+            modelFallback: "GitHub Copilot"
+        ).parse(file)
+
+        XCTAssertEqual(events.count, 1)
+        XCTAssertEqual(events.first?.source, .copilot)
+        XCTAssertEqual(events.first?.provider, "GitHub")
+        XCTAssertEqual(events.first?.model, "gpt-test")
+        XCTAssertEqual(events.first?.tokens.total, 155)
+        XCTAssertEqual(events.first?.tokens.reasoning, 5)
+        XCTAssertEqual(events.first?.costUSD, 0.03)
+    }
+
+    func testGenericParserFindsNestedAgentUsageJSON() throws {
+        let file = try fixture(
+            name: "cursor-chat-history.json",
+            contents: """
+            {"sessions":[{"id":"turn-1","createdAt":"2026-07-22T08:00:00.000Z","modelID":"claude-test","messages":[{"role":"assistant","tokenUsage":{"input_tokens":40,"output_tokens":8,"cache_read_tokens":12,"cache_write_tokens":2}}]}]}
+            """
+        )
+
+        let events = try GenericUsageLogParser(
+            source: .cursor,
+            rootURL: file.deletingLastPathComponent(),
+            provider: "Cursor",
+            modelFallback: "Cursor"
+        ).parse(file)
+
+        XCTAssertEqual(events.count, 1)
+        XCTAssertEqual(events.first?.source, .cursor)
+        XCTAssertEqual(events.first?.model, "claude-test")
+        XCTAssertEqual(events.first?.tokens.total, 62)
+    }
+
     func testSummaryContainsOnlySourcesWithEvents() {
         let event = UsageEvent(
             id: "one",
@@ -258,6 +303,94 @@ final class UsageParserTests: XCTestCase {
         XCTAssertEqual(result.statuses[.codex]?.isAvailable, true)
     }
 
+    func testScannerRefreshesChangedOpenCodeMessage() throws {
+        let homeDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let messageDirectory = homeDirectory
+            .appendingPathComponent(".local/share/opencode/storage/message/session-test", isDirectory: true)
+        try FileManager.default.createDirectory(at: messageDirectory, withIntermediateDirectories: true)
+        addTeardownBlock { try? FileManager.default.removeItem(at: homeDirectory) }
+
+        let now = Date()
+        let timestamp = Int(now.timeIntervalSince1970 * 1_000)
+        let message = messageDirectory.appendingPathComponent("msg_test.json")
+        try openCodeMessage(id: "first", timestamp: timestamp, input: 10).write(to: message)
+
+        let scanner = UsageScanner(homeDirectory: homeDirectory)
+        let first = scanner.scan(since: now.addingTimeInterval(-60), now: now)
+        XCTAssertEqual(first.events.first?.tokens.total, 12)
+
+        try openCodeMessage(id: "first", timestamp: timestamp, input: 100).write(to: message)
+        let second = scanner.scan(since: now.addingTimeInterval(-60), now: now)
+        XCTAssertEqual(second.events.first?.tokens.total, 102)
+    }
+
+    func testScannerLimitsConcurrentSourceParsing() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        addTeardownBlock { try? FileManager.default.removeItem(at: root) }
+
+        let probe = ConcurrentParseProbe()
+        let sources: [UsageSource] = [.codex, .claude, .kimi]
+        let parsers = try sources.map { source in
+            let directory = root.appendingPathComponent(source.id, isDirectory: true)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            let file = directory.appendingPathComponent("log.json")
+            try Data("{}".utf8).write(to: file)
+            return SlowUsageParser(source: source, rootURL: directory, probe: probe)
+        }
+        let scanner = UsageScanner(parsers: parsers, maximumConcurrentSources: 2)
+        let finished = expectation(description: "scan finished")
+
+        DispatchQueue.global().async {
+            _ = scanner.scan(since: Date().addingTimeInterval(-60))
+            finished.fulfill()
+        }
+
+        XCTAssertTrue(probe.waitForEntries(2))
+        XCTAssertEqual(probe.maximumActiveParsers, 2)
+        probe.releaseParsers(count: 3)
+        wait(for: [finished], timeout: 2)
+    }
+
+    func testStorePrioritizesTodayBeforeMonthBackfill() {
+        let now = Date(timeIntervalSince1970: 1_784_885_600)
+        let defaults = isolatedDefaults()
+        defaults.set(UsageRange.today.rawValue, forKey: "usageRange")
+        let scanner = RecordingScanner(now: now)
+        let store = UsageStore(
+            scanner: scanner,
+            defaults: defaults,
+            snapshotPublisher: { _, _, _, _, _ in }
+        ) { now }
+
+        store.refresh()
+
+        XCTAssertTrue(waitUntil { scanner.requestedStarts.count >= 2 })
+        XCTAssertEqual(scanner.requestedStarts[0], UsageRange.today.startDate(relativeTo: now))
+        XCTAssertEqual(scanner.requestedStarts[1], UsageRange.month.startDate(relativeTo: now))
+        XCTAssertEqual(store.lastUpdated, now)
+    }
+
+    func testStoreScansMonthImmediatelyWhenMonthIsSelected() {
+        let now = Date(timeIntervalSince1970: 1_784_885_600)
+        let defaults = isolatedDefaults()
+        defaults.set(UsageRange.month.rawValue, forKey: "usageRange")
+        let scanner = RecordingScanner(now: now)
+        let store = UsageStore(
+            scanner: scanner,
+            defaults: defaults,
+            snapshotPublisher: { _, _, _, _, _ in }
+        ) { now }
+
+        store.refresh()
+
+        XCTAssertTrue(waitUntil { store.lastUpdated == now })
+        XCTAssertEqual(scanner.requestedStarts[0], UsageRange.month.startDate(relativeTo: now))
+        XCTAssertEqual(store.lastUpdated, now)
+    }
+
     private func fixture(name: String, contents: String) throws -> URL {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
@@ -266,5 +399,139 @@ final class UsageParserTests: XCTestCase {
         try contents.data(using: .utf8)?.write(to: file)
         addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
         return file
+    }
+
+    private func isolatedDefaults() -> UserDefaults {
+        let suiteName = "TokenScopeTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        addTeardownBlock {
+            defaults.removePersistentDomain(forName: suiteName)
+        }
+        return defaults
+    }
+
+    private func waitUntil(
+        timeout: TimeInterval = 2,
+        condition: @escaping () -> Bool
+    ) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if condition() { return true }
+            RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(0.01))
+        }
+        return condition()
+    }
+
+    private func openCodeMessage(id: String, timestamp: Int, input: Int) throws -> Data {
+        let object: [String: Any] = [
+            "id": id,
+            "role": "assistant",
+            "providerID": "OpenCode",
+            "modelID": "test",
+            "time": ["completed": timestamp],
+            "tokens": ["input": input, "output": 2]
+        ]
+        return try JSONSerialization.data(withJSONObject: object)
+    }
+}
+
+private final class RecordingScanner: UsageScanning {
+    private let lock = NSLock()
+    private var starts: [Date] = []
+    private let now: Date
+
+    var requestedStarts: [Date] {
+        lock.lock()
+        defer { lock.unlock() }
+        return starts
+    }
+
+    init(now: Date) {
+        self.now = now
+    }
+
+    func scan(since startDate: Date) -> ScanResult {
+        lock.lock()
+        starts.append(startDate)
+        lock.unlock()
+
+        let event = UsageEvent(
+            id: "recording-\(startDate.timeIntervalSince1970)",
+            timestamp: now.addingTimeInterval(-60),
+            source: .codex,
+            provider: "OpenAI",
+            model: "test",
+            tokens: TokenBreakdown(input: 10, output: 2),
+            costUSD: nil
+        )
+
+        return ScanResult(
+            events: [event],
+            statuses: [
+                .codex: SourceStatus(
+                    source: .codex,
+                    isAvailable: true,
+                    fileCount: 1,
+                    eventCount: 1,
+                    errorCount: 0
+                )
+            ],
+            scannedAt: now
+        )
+    }
+}
+
+private final class ConcurrentParseProbe {
+    private let lock = NSLock()
+    private let entered = DispatchSemaphore(value: 0)
+    private let release = DispatchSemaphore(value: 0)
+    private var activeParsers = 0
+    private var maximumActive = 0
+
+    var maximumActiveParsers: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return maximumActive
+    }
+
+    func enter() {
+        lock.lock()
+        activeParsers += 1
+        maximumActive = max(maximumActive, activeParsers)
+        lock.unlock()
+        entered.signal()
+        release.wait()
+        lock.lock()
+        activeParsers -= 1
+        lock.unlock()
+    }
+
+    func waitForEntries(_ count: Int) -> Bool {
+        for _ in 0..<count {
+            guard entered.wait(timeout: .now() + 1) == .success else { return false }
+        }
+        return true
+    }
+
+    func releaseParsers(count: Int) {
+        for _ in 0..<count {
+            release.signal()
+        }
+    }
+}
+
+private struct SlowUsageParser: UsageLogParser {
+    let source: UsageSource
+    let rootURL: URL
+    let probe: ConcurrentParseProbe
+
+    func accepts(_ url: URL) -> Bool {
+        url.lastPathComponent == "log.json"
+    }
+
+    func parse(_ url: URL) throws -> [UsageEvent] {
+        probe.enter()
+        return []
     }
 }

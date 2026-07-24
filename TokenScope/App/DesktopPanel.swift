@@ -26,7 +26,11 @@ final class DesktopPanel: NSPanel {
         isMovableByWindowBackground = true
         animationBehavior = .utilityWindow
         collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle, .fullScreenAuxiliary]
-        contentView = NSHostingView(rootView: DesktopWidgetView(store: store))
+        contentView = NSHostingView(
+            rootView: DesktopWidgetView(store: store) { [weak self] in
+                self?.orderOut(nil)
+            }
+        )
         setFrameAutosaveName("TokenScopeDesktopPanel")
         applySavedLevel()
 

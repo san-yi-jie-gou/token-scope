@@ -1,35 +1,55 @@
+import AppKit
 import Charts
 import SwiftUI
 
 private enum TokenScopeStyle {
     static let accent = Color(red: 0.15, green: 0.68, blue: 0.58)
-    static let cornerRadius: CGFloat = 14
+    static let cornerRadius: CGFloat = 10
+    static let ringDiameter: CGFloat = 166
 }
 
 struct DesktopWidgetView: View {
     @ObservedObject var store: UsageStore
+    let onHide: () -> Void
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var highlightedSourceID: String?
 
     private var summary: UsageSummary { store.summary }
     private var displayedTotal: Int64 {
         summary.tokens.total(includingCache: store.includesCache)
     }
+    private var effectiveHighlightedSourceID: String? {
+        guard let highlightedSourceID,
+              summary.sources.contains(where: { $0.source.id == highlightedSourceID }) else {
+            return nil
+        }
+        return highlightedSourceID
+    }
 
     var body: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 0) {
             header
-            totalSection
-            sourceBar
+
+            Divider()
+                .opacity(0.5)
+
+            energyCoreSection
+
             if store.range == .month && !store.dailyUsage.isEmpty {
                 MonthlyUsageChart(days: store.dailyUsage, includesCache: store.includesCache)
+                    .frame(height: WidgetLayout.monthChartHeight)
             }
+
             sourceRows
             footer
         }
-        .padding(18)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
         .frame(
             width: WidgetLayout.width,
-            height: WidgetLayout.height(activeAgentCount: summary.sources.count, range: store.range)
+            height: WidgetLayout.height(activeAgentCount: summary.sources.count, range: store.range),
+            alignment: .top
         )
         .background(
             .regularMaterial,
@@ -37,32 +57,30 @@ struct DesktopWidgetView: View {
         )
         .overlay {
             RoundedRectangle(cornerRadius: TokenScopeStyle.cornerRadius, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.11), lineWidth: 1)
+                .strokeBorder(Color.primary.opacity(0.14), lineWidth: 1)
         }
         .contextMenu {
-            Button("刷新", systemImage: "arrow.clockwise") { store.refresh(userInitiated: true) }
-            Divider()
-            ForEach(UsageRange.allCases) { range in
-                Button(range.title) { store.range = range }
-            }
+            Button("隐藏", systemImage: "eye.slash") { onHide() }
         }
     }
 
     private var header: some View {
         HStack(spacing: 10) {
-            Image(systemName: "chart.bar.xaxis")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(TokenScopeStyle.accent)
-                .frame(width: 24, height: 24)
-                .background(
-                    TokenScopeStyle.accent.opacity(0.12),
-                    in: RoundedRectangle(cornerRadius: 7, style: .continuous)
-                )
+            Image(nsImage: NSApplication.shared.applicationIconImage)
+                .resizable()
+                .interpolation(.high)
+                .frame(width: 36, height: 36)
+                .accessibilityHidden(true)
 
-            Text("TokenScope")
-                .font(.system(size: 15, weight: .semibold))
+            VStack(alignment: .leading, spacing: 2) {
+                Text("TokenScope")
+                    .font(.system(size: 15, weight: .semibold))
+                Text("本地 AI Token 用量")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.tertiary)
+            }
 
-            Spacer(minLength: 8)
+            Spacer(minLength: 6)
 
             Picker("统计周期", selection: $store.range) {
                 ForEach(UsageRange.allCases) { range in
@@ -71,15 +89,14 @@ struct DesktopWidgetView: View {
             }
             .labelsHidden()
             .pickerStyle(.segmented)
-            .frame(width: 116)
+            .controlSize(.small)
+            .frame(width: 108)
 
             Button {
                 store.refresh(userInitiated: true)
             } label: {
                 Image(systemName: "arrow.clockwise")
-                    .rotationEffect(
-                        .degrees(store.isRefreshing && !reduceMotion ? 360 : 0)
-                    )
+                    .rotationEffect(.degrees(store.isRefreshing && !reduceMotion ? 360 : 0))
                     .animation(
                         store.isRefreshing && !reduceMotion
                             ? .linear(duration: 1).repeatForever(autoreverses: false)
@@ -93,60 +110,88 @@ struct DesktopWidgetView: View {
             .help("刷新用量")
             .accessibilityLabel("刷新用量")
         }
+        .frame(height: 40)
     }
 
-    private var totalSection: some View {
-        HStack(alignment: .lastTextBaseline) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("总消耗")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.secondary)
-                    .help(store.includesCache ? "输入、输出与缓存 Token" : "仅输入与输出 Token")
-                Text(TokenFormatter.compact(displayedTotal))
-                    .font(.system(size: 36, weight: .bold, design: .rounded))
-                    .monospacedDigit()
-                    .contentTransition(.numericText(value: Double(displayedTotal)))
-                    .animation(reduceMotion ? nil : .easeOut(duration: 0.24), value: displayedTotal)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.72)
-            }
+    private var energyCoreSection: some View {
+        VStack(spacing: 8) {
+            ZStack {
+                Circle()
+                    .stroke(
+                        TokenScopeStyle.accent.opacity(0.24),
+                        style: StrokeStyle(lineWidth: 1, dash: [24, 14])
+                    )
+                    .frame(width: 184, height: 184)
 
-            Text("tokens")
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(.secondary)
-                .padding(.bottom, 5)
-
-            Spacer()
-
-            if displayedTotal > 0 {
-                Text("\(summary.eventCount) 次调用")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-                    .padding(.bottom, 5)
-            }
-        }
-    }
-
-    private var sourceBar: some View {
-        GeometryReader { proxy in
-            HStack(spacing: 2) {
-                ForEach(summary.sources) { item in
-                    RoundedRectangle(cornerRadius: 2, style: .continuous)
-                        .fill(item.source.tint)
-                        .frame(
-                            width: segmentWidth(
-                                item.tokens.total(includingCache: store.includesCache),
-                                total: displayedTotal,
-                                width: proxy.size.width
-                            )
-                        )
+                ForEach(0..<4, id: \.self) { index in
+                    Capsule()
+                        .fill(TokenScopeStyle.accent.opacity(0.58))
+                        .frame(width: 2, height: 9)
+                        .offset(y: -92)
+                        .rotationEffect(.degrees(Double(index) * 90))
                 }
+
+                EnergyRing(
+                    sources: summary.sources,
+                    grandTotal: displayedTotal,
+                    includesCache: store.includesCache,
+                    highlightedSourceID: effectiveHighlightedSourceID
+                )
+                .frame(width: TokenScopeStyle.ringDiameter, height: TokenScopeStyle.ringDiameter)
+
+                VStack(spacing: 3) {
+                    Text("TOKEN 能量")
+                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                        .foregroundStyle(TokenScopeStyle.accent)
+
+                    Text(TokenFormatter.compact(displayedTotal))
+                        .font(.system(size: 32, weight: .bold, design: .monospaced))
+                        .monospacedDigit()
+                        .contentTransition(.numericText(value: Double(displayedTotal)))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+
+                    Text("tokens")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.tertiary)
+
+                    if displayedTotal > 0 {
+                        Text("\(TokenFormatter.compact(Int64(summary.eventCount))) 次调用")
+                            .font(.system(size: 10, weight: .medium, design: .monospaced))
+                            .foregroundStyle(TokenScopeStyle.accent)
+                            .monospacedDigit()
+                    }
+                }
+                .frame(width: 112)
             }
+            .frame(width: 190, height: 184)
+
+            Text(coreCaption)
+                .font(.system(size: 10, design: .monospaced))
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+                .contentTransition(.numericText())
         }
-        .frame(height: 8)
-        .background(Color.primary.opacity(0.08), in: RoundedRectangle(cornerRadius: 2, style: .continuous))
-        .clipped()
-        .animation(reduceMotion ? nil : .snappy(duration: 0.34), value: summary.sources)
+        .frame(height: WidgetLayout.energyCoreHeight)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: effectiveHighlightedSourceID)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("总消耗 \(TokenFormatter.compact(displayedTotal)) tokens，\(coreCaption)")
+    }
+
+    private var coreCaption: String {
+        guard displayedTotal > 0,
+              let source = highlightedSource
+        else {
+            return store.range == .today ? "今天暂无来源" : "本月暂无来源"
+        }
+        return "\(source.source.displayName) 占比 \(percentageLabel(for: source))"
+    }
+
+    private var highlightedSource: SourceUsageSummary? {
+        if let effectiveHighlightedSourceID {
+            return summary.sources.first { $0.source.id == effectiveHighlightedSourceID }
+        }
+        return summary.sources.first
     }
 
     private var sourceRows: some View {
@@ -159,7 +204,7 @@ struct DesktopWidgetView: View {
                 }
                 .buttonStyle(.borderless)
                 .font(.system(size: 11, weight: .medium))
-                .frame(maxWidth: .infinity, minHeight: 22)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if summary.sources.isEmpty {
                 HStack(spacing: 8) {
                     Image(systemName: "clock")
@@ -167,44 +212,120 @@ struct DesktopWidgetView: View {
                 }
                 .font(.system(size: 11))
                 .foregroundStyle(.tertiary)
-                .frame(maxWidth: .infinity, minHeight: 22)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                VStack(spacing: 9) {
+                VStack(spacing: 0) {
                     ForEach(summary.sources) { item in
-                        SourceUsageRow(
+                        SourceChannelRow(
                             summary: item,
                             grandTotal: displayedTotal,
-                            includesCache: store.includesCache
-                        )
+                            includesCache: store.includesCache,
+                            isHighlighted: effectiveHighlightedSourceID == item.source.id
+                        ) { isHovered in
+                            highlightedSourceID = isHovered ? item.source.id : nil
+                        }
                     }
                 }
             }
         }
+        .frame(height: WidgetLayout.sourceRowsHeight(activeAgentCount: summary.sources.count))
     }
 
     private var footer: some View {
-        HStack(spacing: 12) {
-            MetricLabel(title: "输入", value: summary.tokens.input)
-            MetricLabel(title: "输出", value: summary.tokens.output)
-            MetricLabel(title: "缓存", value: summary.tokens.cacheRead + summary.tokens.cacheWrite)
+        HStack(spacing: 9) {
+            MetricLabel(systemImage: "arrow.up", title: "输入", value: summary.tokens.input)
+            MetricLabel(systemImage: "arrow.down", title: "输出", value: summary.tokens.output)
+            MetricLabel(
+                systemImage: "internaldrive",
+                title: "缓存",
+                value: summary.tokens.cacheRead + summary.tokens.cacheWrite
+            )
 
-            Spacer(minLength: 4)
+            Spacer(minLength: 2)
 
             if let lastUpdated = store.lastUpdated {
-                Text(lastUpdated, format: .dateTime.hour().minute())
-                    .font(.system(size: 10, design: .monospaced))
-                    .foregroundStyle(.tertiary)
+                HStack(spacing: 3) {
+                    Image(systemName: "clock")
+                    Text(lastUpdated, format: .dateTime.hour().minute())
+                }
+                .font(.system(size: 9, design: .monospaced))
+                .foregroundStyle(.tertiary)
             } else if store.isRefreshing {
                 ProgressView()
                     .controlSize(.small)
             }
         }
-        .padding(.top, 2)
+        .frame(height: WidgetLayout.footerHeight)
+        .overlay(alignment: .top) {
+            Divider().opacity(0.5)
+        }
     }
 
-    private func segmentWidth(_ value: Int64, total: Int64, width: CGFloat) -> CGFloat {
-        guard total > 0 else { return 0 }
-        return max(3, width * CGFloat(Double(value) / Double(total)))
+    private func percentageLabel(for item: SourceUsageSummary) -> String {
+        guard displayedTotal > 0 else { return "0%" }
+        let value = item.tokens.total(includingCache: store.includesCache)
+        let percentage = Double(value) / Double(displayedTotal) * 100
+        return percentage < 0.1 ? "<0.1%" : String(format: "%.1f%%", percentage)
+    }
+}
+
+private struct RingSegment: Identifiable {
+    let id: String
+    let color: Color
+    let start: Double
+    let end: Double
+}
+
+private struct EnergyRing: View {
+    let sources: [SourceUsageSummary]
+    let grandTotal: Int64
+    let includesCache: Bool
+    let highlightedSourceID: String?
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private var segments: [RingSegment] {
+        guard grandTotal > 0 else { return [] }
+        var cursor = 0.0
+        return sources.compactMap { item in
+            let value = max(0, item.tokens.total(includingCache: includesCache))
+            guard value > 0 else { return nil }
+            let fraction = Double(value) / Double(grandTotal)
+            let segment = RingSegment(
+                id: item.source.id,
+                color: item.source.tint,
+                start: cursor,
+                end: min(1, cursor + fraction)
+            )
+            cursor += fraction
+            return segment
+        }
+    }
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(Color.primary.opacity(0.08), lineWidth: 15)
+
+            ForEach(segments) { segment in
+                let length = segment.end - segment.start
+                let gap = min(0.004, length * 0.22)
+
+                Circle()
+                    .trim(from: segment.start + gap, to: max(segment.start + gap, segment.end - gap))
+                    .stroke(
+                        segment.color,
+                        style: StrokeStyle(lineWidth: 15, lineCap: .round)
+                    )
+                    .rotationEffect(.degrees(-90))
+                    .opacity(
+                        highlightedSourceID == nil || highlightedSourceID == segment.id ? 1 : 0.2
+                    )
+            }
+        }
+        .shadow(color: TokenScopeStyle.accent.opacity(0.12), radius: 8)
+        .animation(reduceMotion ? nil : .snappy(duration: 0.32), value: segments.map(\.end))
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: highlightedSourceID)
     }
 }
 
@@ -225,35 +346,30 @@ private struct MonthlyUsageChart: View {
     }
 
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 5) {
             HStack {
                 Text("每日消耗")
-                    .font(.system(size: 11, weight: .medium))
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
                     .foregroundStyle(.secondary)
 
                 Spacer()
 
                 Group {
                     if let hoveredDay {
-                        HStack(spacing: 4) {
+                        HStack(spacing: 3) {
                             Text(hoveredDay.date, format: .dateTime.month().day())
                             Text("·")
                             Text(TokenFormatter.compact(chartTotal(hoveredDay.tokens)))
                                 .fontWeight(.semibold)
-                                .foregroundStyle(.secondary)
-                                .contentTransition(
-                                    .numericText(value: Double(chartTotal(hoveredDay.tokens)))
-                                )
                             Text("· \(hoveredDay.eventCount) 次")
                         }
                     } else {
                         Text("峰值 \(TokenFormatter.compact(peak))")
                     }
                 }
-                .font(.system(size: 10))
+                .font(.system(size: 9, design: .monospaced))
                 .monospacedDigit()
                 .foregroundStyle(.tertiary)
-                .transition(.opacity)
             }
 
             Chart {
@@ -264,42 +380,25 @@ private struct MonthlyUsageChart: View {
                             y: .value("Tokens", chartTotal(source.tokens))
                         )
                         .foregroundStyle(source.source.tint)
-                        .cornerRadius(2)
+                        .cornerRadius(1)
                         .opacity(barOpacity(for: day))
                     }
                 }
 
                 if let hoveredDay {
                     RuleMark(x: .value("选中日期", hoveredDay.date, unit: .day))
-                        .foregroundStyle(Color.primary.opacity(0.28))
+                        .foregroundStyle(TokenScopeStyle.accent.opacity(0.55))
                         .lineStyle(StrokeStyle(lineWidth: 1, dash: [3, 3]))
-
-                    PointMark(
-                        x: .value("选中日期", hoveredDay.date, unit: .day),
-                        y: .value("当日 Tokens", chartTotal(hoveredDay.tokens))
-                    )
-                    .foregroundStyle(Color.primary.opacity(0.72))
-                    .symbolSize(24)
                 }
             }
             .chartXScale(domain: chartDomain)
             .chartXAxis {
                 AxisMarks(values: .stride(by: .day, count: 7)) { value in
-                    AxisGridLine().foregroundStyle(Color.primary.opacity(0.05))
-                    AxisTick().foregroundStyle(Color.primary.opacity(0.18))
                     AxisValueLabel(format: .dateTime.day())
+                        .foregroundStyle(Color.secondary.opacity(0.65))
                 }
             }
-            .chartYAxis {
-                AxisMarks(position: .leading, values: .automatic(desiredCount: 2)) { value in
-                    AxisGridLine().foregroundStyle(Color.primary.opacity(0.08))
-                    AxisValueLabel {
-                        if let tokenCount = value.as(Int64.self) {
-                            Text(TokenFormatter.compact(tokenCount))
-                        }
-                    }
-                }
-            }
+            .chartYAxis(.hidden)
             .chartLegend(.hidden)
             .chartOverlay { proxy in
                 GeometryReader { geometry in
@@ -316,7 +415,7 @@ private struct MonthlyUsageChart: View {
                         }
                 }
             }
-            .frame(height: 72)
+            .frame(height: 52)
             .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: includesCache)
             .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: hoveredDate)
             .accessibilityLabel("本月每日 Token 消耗")
@@ -325,8 +424,8 @@ private struct MonthlyUsageChart: View {
     }
 
     private func barOpacity(for day: DailyUsageSummary) -> Double {
-        guard let hoveredDate else { return 0.9 }
-        return Calendar.current.isDate(day.date, inSameDayAs: hoveredDate) ? 1 : 0.26
+        guard let hoveredDate else { return 0.78 }
+        return Calendar.current.isDate(day.date, inSameDayAs: hoveredDate) ? 1 : 0.2
     }
 
     private func updateHover(at location: CGPoint, proxy: ChartProxy, geometry: GeometryProxy) {
@@ -376,81 +475,91 @@ private struct MonthlyUsageChart: View {
     }
 }
 
-private struct SourceUsageRow: View {
+private struct SourceChannelRow: View {
     let summary: SourceUsageSummary
     let grandTotal: Int64
     let includesCache: Bool
+    let isHighlighted: Bool
+    let onHoverChange: (Bool) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var isHovered = false
 
     private var displayedTotal: Int64 {
         summary.tokens.total(includingCache: includesCache)
     }
 
+    private var percentage: Double {
+        guard grandTotal > 0 else { return 0 }
+        return Double(displayedTotal) / Double(grandTotal) * 100
+    }
+
+    private var percentageLabel: String {
+        percentage < 0.1 ? "<0.1%" : String(format: "%.1f%%", percentage)
+    }
+
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 9) {
+            RoundedRectangle(cornerRadius: 1)
+                .fill(summary.source.tint)
+                .frame(width: 7, height: 7)
+                .rotationEffect(.degrees(45))
+
             Image(systemName: summary.source.symbolName)
-                .font(.system(size: 12, weight: .semibold))
+                .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(summary.source.tint)
-                .frame(width: 20, height: 20)
-                .background(summary.source.tint.opacity(0.14), in: RoundedRectangle(cornerRadius: 5, style: .continuous))
-                .scaleEffect(isHovered ? 1.08 : 1)
+                .frame(width: 14)
 
             Text(summary.source.displayName)
-                .font(.system(size: 12, weight: .medium))
+                .font(.system(size: 11, weight: .medium))
                 .lineLimit(1)
                 .minimumScaleFactor(0.72)
-                .frame(width: 68, alignment: .leading)
 
-            GeometryReader { proxy in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(Color.primary.opacity(0.07))
-                    Capsule()
-                        .fill(summary.source.tint.opacity(isHovered ? 0.96 : 0.78))
-                        .frame(width: barWidth(proxy.size.width))
-                        .scaleEffect(y: isHovered ? 1.35 : 1)
-                }
-            }
-            .frame(height: 5)
+            Text(percentageLabel)
+                .font(.system(size: 9, design: .monospaced))
+                .foregroundStyle(.tertiary)
+                .monospacedDigit()
+
+            Spacer(minLength: 4)
 
             Text(TokenFormatter.compact(displayedTotal))
+                .font(.system(size: 11, weight: .medium, design: .monospaced))
                 .monospacedDigit()
                 .contentTransition(.numericText(value: Double(displayedTotal)))
         }
-        .font(.system(size: 11))
-        .padding(.horizontal, 6)
-        .frame(height: 22)
-        .background(
-            summary.source.tint.opacity(isHovered ? 0.08 : 0),
-            in: RoundedRectangle(cornerRadius: 7, style: .continuous)
-        )
+        .padding(.horizontal, 2)
+        .frame(height: WidgetLayout.sourceRowHeight)
+        .background(summary.source.tint.opacity(isHighlighted ? 0.07 : 0))
+        .overlay(alignment: .bottom) {
+            Divider().opacity(0.45)
+        }
         .contentShape(Rectangle())
-        .onHover { isHovered = $0 }
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: isHovered)
+        .onHover(perform: onHoverChange)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: isHighlighted)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(summary.source.displayName)，\(TokenFormatter.compact(displayedTotal)) tokens")
-    }
-
-    private func barWidth(_ available: CGFloat) -> CGFloat {
-        guard grandTotal > 0, displayedTotal > 0 else { return 0 }
-        return max(3, available * CGFloat(Double(displayedTotal) / Double(grandTotal)))
+        .accessibilityLabel(
+            "\(summary.source.displayName)，\(TokenFormatter.compact(displayedTotal)) tokens，占比 \(percentageLabel)"
+        )
     }
 }
 
 private struct MetricLabel: View {
+    let systemImage: String
     let title: String
     let value: Int64
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 3) {
+            Image(systemName: systemImage)
+                .font(.system(size: 8, weight: .medium))
+                .foregroundStyle(.tertiary)
             Text(title)
                 .foregroundStyle(.tertiary)
             Text(TokenFormatter.compact(value))
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
         }
-        .font(.system(size: 10))
+        .font(.system(size: 9))
+        .fixedSize()
     }
 }
 
@@ -463,6 +572,12 @@ private extension UsageSource {
         case UsageSource.omp.id: return Color(red: 0.82, green: 0.60, blue: 0.12)
         case UsageSource.openCode.id: return Color(red: 0.66, green: 0.36, blue: 0.72)
         case UsageSource.gemini.id: return Color(red: 0.25, green: 0.48, blue: 0.92)
+        case UsageSource.copilot.id: return Color(red: 0.20, green: 0.55, blue: 0.86)
+        case UsageSource.cursor.id: return Color(red: 0.12, green: 0.12, blue: 0.14)
+        case UsageSource.qoder.id: return Color(red: 0.58, green: 0.42, blue: 0.95)
+        case UsageSource.windsurf.id: return Color(red: 0.08, green: 0.62, blue: 0.72)
+        case UsageSource.cline.id: return Color(red: 0.78, green: 0.36, blue: 0.42)
+        case UsageSource.trae.id: return Color(red: 0.95, green: 0.48, blue: 0.20)
         default:
             let palette: [Color] = [.mint, .pink, .indigo, .orange, .cyan, .green]
             let checksum = id.unicodeScalars.reduce(0) { $0 + Int($1.value) }
@@ -478,6 +593,12 @@ private extension UsageSource {
         case UsageSource.omp.id: return "bolt.horizontal.fill"
         case UsageSource.openCode.id: return "terminal.fill"
         case UsageSource.gemini.id: return "diamond.fill"
+        case UsageSource.copilot.id: return "person.2.fill"
+        case UsageSource.cursor.id: return "cursorarrow.rays"
+        case UsageSource.qoder.id: return "q.square.fill"
+        case UsageSource.windsurf.id: return "wind"
+        case UsageSource.cline.id: return "hammer.fill"
+        case UsageSource.trae.id: return "network"
         default: return "cpu"
         }
     }

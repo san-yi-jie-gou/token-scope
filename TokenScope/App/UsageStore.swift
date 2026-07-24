@@ -10,7 +10,7 @@ final class UsageStore: ObservableObject {
     @Published private(set) var dailyUsage: [DailyUsageSummary] = []
     @Published var includesCache: Bool {
         didSet {
-            UserDefaults.standard.set(includesCache, forKey: Self.includesCacheKey)
+            defaults.set(includesCache, forKey: Self.includesCacheKey)
             rebuildAggregates()
             publishWidgetSnapshot()
             notifyActiveSourceCount()
@@ -18,10 +18,12 @@ final class UsageStore: ObservableObject {
     }
     @Published var range: UsageRange {
         didSet {
-            UserDefaults.standard.set(range.rawValue, forKey: Self.rangeKey)
-            rebuildAggregates()
+            defaults.set(range.rawValue, forKey: Self.rangeKey)
+            let referenceDate = lastUpdated ?? dateProvider()
+            rebuildAggregates(referenceDate: referenceDate)
             publishWidgetSnapshot()
             notifyActiveSourceCount()
+            refreshIfSelectedRangeNeedsMoreData(referenceDate: referenceDate)
         }
     }
 
@@ -30,12 +32,37 @@ final class UsageStore: ObservableObject {
 
     private static let rangeKey = "usageRange"
     private static let includesCacheKey = "includesCache"
-    private var scanner: UsageScanner?
+    private var scanner: (any UsageScanning)?
     private let dataDirectoryAccess: DataDirectoryAccess
+    private let defaults: UserDefaults
+    private let snapshotPublisher: ([UsageEvent], Bool, UsageRange, Date, Date?) -> Void
+    private let dateProvider: () -> Date
     private let workQueue = DispatchQueue(label: "tech.qidao.app.tokenscope.scan", qos: .utility)
 
-    init(scanner: UsageScanner? = nil, dataDirectoryAccess: DataDirectoryAccess = DataDirectoryAccess()) {
+    init(
+        scanner: (any UsageScanning)? = nil,
+        dataDirectoryAccess: DataDirectoryAccess = DataDirectoryAccess(),
+        defaults: UserDefaults = .standard,
+        snapshotPublisher: @escaping ([UsageEvent], Bool, UsageRange, Date, Date?) -> Void = {
+            events,
+            includesCache,
+            range,
+            generatedAt,
+            referenceDate in
+            WidgetSnapshotPublisher.publish(
+                events: events,
+                includesCache: includesCache,
+                range: range,
+                generatedAt: generatedAt,
+                referenceDate: referenceDate
+            )
+        },
+        dateProvider: @escaping () -> Date = Date.init
+    ) {
         self.dataDirectoryAccess = dataDirectoryAccess
+        self.defaults = defaults
+        self.snapshotPublisher = snapshotPublisher
+        self.dateProvider = dateProvider
         if let scanner {
             self.scanner = scanner
             self.hasDataDirectoryAccess = true
@@ -43,39 +70,52 @@ final class UsageStore: ObservableObject {
             self.scanner = UsageScanner(homeDirectory: homeDirectory)
             self.hasDataDirectoryAccess = true
         }
-        let stored = UserDefaults.standard.string(forKey: Self.rangeKey)
+        let stored = defaults.string(forKey: Self.rangeKey)
         self.range = UsageRange(rawValue: stored ?? "") ?? .today
-        self.includesCache = UserDefaults.standard.bool(forKey: Self.includesCacheKey)
+        self.includesCache = defaults.bool(forKey: Self.includesCacheKey)
     }
 
     private var isScanning = false
+    private var loadedStartDate: Date?
 
-    func refresh(userInitiated: Bool = false) {
+    func refresh(userInitiated _: Bool = false) {
         guard let scanner else { return }
-        if userInitiated {
+        guard !isScanning else { return }
+
+        let foregroundStart = range.startDate(relativeTo: dateProvider())
+        let shouldBackfillMonth = range == .today
+        startScan(
+            using: scanner,
+            since: foregroundStart,
+            isUserVisible: true,
+            backfillMonthAfter: shouldBackfillMonth
+        )
+    }
+
+    private func startScan(
+        using scanner: any UsageScanning,
+        since startDate: Date,
+        isUserVisible: Bool,
+        backfillMonthAfter: Bool
+    ) {
+        guard !isScanning else { return }
+        if isUserVisible {
             isRefreshing = true
         }
-        guard !isScanning else { return }
         isScanning = true
 
-        let start = UsageRange.month.startDate()
         workQueue.async { [weak self] in
-            let result = scanner.scan(since: start)
+            let result = scanner.scan(since: startDate)
             DispatchQueue.main.async {
                 guard let self else { return }
-                self.events = result.events
-                self.statuses = result.statuses
-                self.lastUpdated = result.scannedAt
+                self.applyScanResult(result, loadedStartDate: startDate)
                 self.isScanning = false
-                self.isRefreshing = false
-                self.rebuildAggregates(referenceDate: result.scannedAt)
-                WidgetSnapshotPublisher.publish(
-                    events: result.events,
-                    includesCache: self.includesCache,
-                    range: self.range,
-                    generatedAt: result.scannedAt
-                )
-                self.notifyActiveSourceCount()
+                if isUserVisible {
+                    self.isRefreshing = false
+                }
+                if backfillMonthAfter {
+                    self.backfillMonthIfNeeded()
+                }
             }
         }
     }
@@ -89,7 +129,53 @@ final class UsageStore: ObservableObject {
         lastUpdated = nil
         summary = .empty
         dailyUsage = []
+        loadedStartDate = nil
         refresh()
+    }
+
+    private func applyScanResult(_ result: ScanResult, loadedStartDate: Date) {
+        events = result.events
+        statuses = result.statuses
+        lastUpdated = result.scannedAt
+        self.loadedStartDate = loadedStartDate
+        rebuildAggregates(referenceDate: result.scannedAt)
+        snapshotPublisher(
+            result.events,
+            includesCache,
+            range,
+            result.scannedAt,
+            nil
+        )
+        notifyActiveSourceCount()
+    }
+
+    private func backfillMonthIfNeeded() {
+        guard let scanner, !isScanning else { return }
+        let monthStart = UsageRange.month.startDate(relativeTo: dateProvider())
+        guard loadedStartDate.map({ $0 > monthStart }) ?? true else { return }
+        startScan(
+            using: scanner,
+            since: monthStart,
+            isUserVisible: false,
+            backfillMonthAfter: false
+        )
+    }
+
+    private func refreshIfSelectedRangeNeedsMoreData(referenceDate: Date) {
+        guard hasDataDirectoryAccess,
+              !isScanning,
+              let scanner else {
+            return
+        }
+
+        let requiredStart = range.startDate(relativeTo: referenceDate)
+        guard loadedStartDate.map({ $0 > requiredStart }) ?? true else { return }
+        startScan(
+            using: scanner,
+            since: requiredStart,
+            isUserVisible: true,
+            backfillMonthAfter: range == .today
+        )
     }
 
     private func notifyActiveSourceCount() {
@@ -97,16 +183,17 @@ final class UsageStore: ObservableObject {
     }
 
     private func publishWidgetSnapshot() {
-        WidgetSnapshotPublisher.publish(
-            events: events,
-            includesCache: includesCache,
-            range: range,
-            generatedAt: lastUpdated ?? Date(),
-            referenceDate: Date()
+        snapshotPublisher(
+            events,
+            includesCache,
+            range,
+            lastUpdated ?? dateProvider(),
+            dateProvider()
         )
     }
 
-    private func rebuildAggregates(referenceDate: Date = Date()) {
+    private func rebuildAggregates(referenceDate: Date? = nil) {
+        let referenceDate = referenceDate ?? dateProvider()
         let displayedStart = range.startDate(relativeTo: referenceDate)
         summary = UsageSummary.make(
             from: events.filter { $0.timestamp >= displayedStart },

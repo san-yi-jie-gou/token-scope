@@ -271,6 +271,12 @@ private extension WidgetAgentUsage {
         case "omp": return Color(red: 0.82, green: 0.60, blue: 0.12)
         case "opencode": return Color(red: 0.66, green: 0.36, blue: 0.72)
         case "gemini": return Color(red: 0.25, green: 0.48, blue: 0.92)
+        case "copilot": return Color(red: 0.20, green: 0.55, blue: 0.86)
+        case "cursor": return Color(red: 0.12, green: 0.12, blue: 0.14)
+        case "qoder": return Color(red: 0.58, green: 0.42, blue: 0.95)
+        case "windsurf": return Color(red: 0.08, green: 0.62, blue: 0.72)
+        case "cline": return Color(red: 0.78, green: 0.36, blue: 0.42)
+        case "trae": return Color(red: 0.95, green: 0.48, blue: 0.20)
         default: return .secondary
         }
     }

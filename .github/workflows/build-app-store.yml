@@ -39,7 +39,7 @@ jobs:
             -scheme TokenScope \
             -configuration Release \
             -destination 'generic/platform=macOS' \
-            -archivePath "$RUNNER_TEMP/TokenScope-1.0.0-13.xcarchive" \
+            -archivePath "$RUNNER_TEMP/TokenScope-1.0.0-14.xcarchive" \
             CODE_SIGNING_ALLOWED=YES \
             CODE_SIGN_IDENTITY="-" \
             CODE_SIGNING_REQUIRED=NO \
@@ -47,8 +47,8 @@ jobs:
 
       - name: Remove quarantine attributes
         run: |
-          xattr -cr "$RUNNER_TEMP/TokenScope-1.0.0-13.xcarchive"
-          quarantine_matches="$(xattr -lr "$RUNNER_TEMP/TokenScope-1.0.0-13.xcarchive" | grep -F 'com.apple.quarantine' || true)"
+          xattr -cr "$RUNNER_TEMP/TokenScope-1.0.0-14.xcarchive"
+          quarantine_matches="$(xattr -lr "$RUNNER_TEMP/TokenScope-1.0.0-14.xcarchive" | grep -F 'com.apple.quarantine' || true)"
           if [[ -n "$quarantine_matches" ]]; then
             echo "::error::Archive still contains com.apple.quarantine attributes"
             echo "$quarantine_matches"
@@ -59,21 +59,21 @@ jobs:
         run: |
           sw_vers
           xcodebuild -version
-          /usr/libexec/PlistBuddy -c 'Print :ApplicationProperties:CFBundleVersion' "$RUNNER_TEMP/TokenScope-1.0.0-13.xcarchive/Info.plist"
-          /usr/libexec/PlistBuddy -c 'Print :BuildMachineOSBuild' "$RUNNER_TEMP/TokenScope-1.0.0-13.xcarchive/Products/Applications/TokenScope.app/Contents/Info.plist"
-          codesign -d --entitlements :- "$RUNNER_TEMP/TokenScope-1.0.0-13.xcarchive/Products/Applications/TokenScope.app"
-          codesign -d --entitlements :- "$RUNNER_TEMP/TokenScope-1.0.0-13.xcarchive/Products/Applications/TokenScope.app/Contents/PlugIns/TokenScopeWidget.appex"
+          /usr/libexec/PlistBuddy -c 'Print :ApplicationProperties:CFBundleVersion' "$RUNNER_TEMP/TokenScope-1.0.0-14.xcarchive/Info.plist"
+          /usr/libexec/PlistBuddy -c 'Print :BuildMachineOSBuild' "$RUNNER_TEMP/TokenScope-1.0.0-14.xcarchive/Products/Applications/TokenScope.app/Contents/Info.plist"
+          codesign -d --entitlements :- "$RUNNER_TEMP/TokenScope-1.0.0-14.xcarchive/Products/Applications/TokenScope.app"
+          codesign -d --entitlements :- "$RUNNER_TEMP/TokenScope-1.0.0-14.xcarchive/Products/Applications/TokenScope.app/Contents/PlugIns/TokenScopeWidget.appex"
 
       - name: Package archive
         run: |
           ditto -c -k --norsrc --keepParent \
-            "$RUNNER_TEMP/TokenScope-1.0.0-13.xcarchive" \
-            "$RUNNER_TEMP/TokenScope-1.0.0-13-xcarchive.zip"
+            "$RUNNER_TEMP/TokenScope-1.0.0-14.xcarchive" \
+            "$RUNNER_TEMP/TokenScope-1.0.0-14-xcarchive.zip"
 
       - name: Upload archive
         uses: actions/upload-artifact@v4
         with:
-          name: TokenScope-1.0.0-13-xcarchive
-          path: ${{ runner.temp }}/TokenScope-1.0.0-13-xcarchive.zip
+          name: TokenScope-1.0.0-14-xcarchive
+          path: ${{ runner.temp }}/TokenScope-1.0.0-14-xcarchive.zip
           retention-days: 3
           if-no-files-found: error
