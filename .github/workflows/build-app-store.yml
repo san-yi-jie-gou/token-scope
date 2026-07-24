@@ -32,7 +32,7 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             test
 
-      - name: Create unsigned archive
+      - name: Create adhoc-signed archive
         run: |
           xcodebuild \
             -project TokenScope.xcodeproj \
@@ -40,7 +40,9 @@ jobs:
             -configuration Release \
             -destination 'generic/platform=macOS' \
             -archivePath "$RUNNER_TEMP/TokenScope-1.0.0-12.xcarchive" \
-            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_ALLOWED=YES \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO \
             archive
 
       - name: Record build environment
@@ -49,6 +51,8 @@ jobs:
           xcodebuild -version
           /usr/libexec/PlistBuddy -c 'Print :ApplicationProperties:CFBundleVersion' "$RUNNER_TEMP/TokenScope-1.0.0-12.xcarchive/Info.plist"
           /usr/libexec/PlistBuddy -c 'Print :BuildMachineOSBuild' "$RUNNER_TEMP/TokenScope-1.0.0-12.xcarchive/Products/Applications/TokenScope.app/Contents/Info.plist"
+          codesign -d --entitlements :- "$RUNNER_TEMP/TokenScope-1.0.0-12.xcarchive/Products/Applications/TokenScope.app"
+          codesign -d --entitlements :- "$RUNNER_TEMP/TokenScope-1.0.0-12.xcarchive/Products/Applications/TokenScope.app/Contents/PlugIns/TokenScopeWidget.appex"
 
       - name: Package archive
         run: |
