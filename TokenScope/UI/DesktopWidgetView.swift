@@ -40,7 +40,7 @@ struct DesktopWidgetView: View {
                 .strokeBorder(Color.primary.opacity(0.11), lineWidth: 1)
         }
         .contextMenu {
-            Button("刷新", systemImage: "arrow.clockwise") { store.refresh() }
+            Button("刷新", systemImage: "arrow.clockwise") { store.refresh(userInitiated: true) }
             Divider()
             ForEach(UsageRange.allCases) { range in
                 Button(range.title) { store.range = range }
@@ -74,15 +74,13 @@ struct DesktopWidgetView: View {
             .frame(width: 116)
 
             Button {
-                store.refresh()
+                store.refresh(userInitiated: true)
             } label: {
                 Image(systemName: "arrow.clockwise")
-                    .rotationEffect(.degrees(store.isRefreshing && !reduceMotion ? 360 : 0))
-                    .animation(
-                        store.isRefreshing && !reduceMotion
-                            ? .linear(duration: 0.8).repeatForever(autoreverses: false)
-                            : nil,
-                        value: store.isRefreshing
+                    .symbolEffect(
+                        .rotate,
+                        options: .repeat(.continuous),
+                        isActive: store.isRefreshing && !reduceMotion
                     )
                     .frame(width: 18, height: 18)
             }

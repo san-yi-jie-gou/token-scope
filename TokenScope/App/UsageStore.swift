@@ -48,10 +48,15 @@ final class UsageStore: ObservableObject {
         self.includesCache = UserDefaults.standard.bool(forKey: Self.includesCacheKey)
     }
 
-    func refresh() {
+    private var isScanning = false
+
+    func refresh(userInitiated: Bool = false) {
         guard let scanner else { return }
-        guard !isRefreshing else { return }
-        isRefreshing = true
+        if userInitiated {
+            isRefreshing = true
+        }
+        guard !isScanning else { return }
+        isScanning = true
 
         let start = UsageRange.month.startDate()
         workQueue.async { [weak self] in
@@ -61,6 +66,7 @@ final class UsageStore: ObservableObject {
                 self.events = result.events
                 self.statuses = result.statuses
                 self.lastUpdated = result.scannedAt
+                self.isScanning = false
                 self.isRefreshing = false
                 self.rebuildAggregates(referenceDate: result.scannedAt)
                 WidgetSnapshotPublisher.publish(
