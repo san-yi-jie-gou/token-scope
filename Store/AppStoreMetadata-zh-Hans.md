@@ -18,7 +18,7 @@ Token,AI,Codex,Claude,Kimi,Copilot,Cursor,Qoder,开发者,编程,用量,统计
 
 ## 宣传文本
 
-一个面板看清多个 Coding Agent 的 Token 消耗。判断省 Token 工具、skill 和工作流调整是否真的改变了用量。
+看清 Claude Code、Codex、Kimi 等 Coding Agent 的 Token 消耗，判断省 Token 工具、skill 和目录结构调整是否真的让 AI 编程工作流变轻。
 
 ## 描述
 
