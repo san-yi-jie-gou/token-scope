@@ -18,13 +18,15 @@ Token,AI,Codex,Claude,Kimi,Copilot,Cursor,Qoder,开发者,编程,用量,统计
 
 ## 宣传文本
 
-一个面板看清所有 Coding Agent 的 Token 消耗。自动识别本地日志，按天与按月统计，默认排除缓存；桌面组件、菜单栏和系统 Widget 始终同步。
+一个面板看清多个 Coding Agent 的 Token 消耗。判断省 Token 工具、skill 和工作流调整是否真的改变了用量。
 
 ## 描述
 
-你在 Codex、Claude Code、Kimi Code、Cursor 等多个 Coding Agent 之间切换，却很难回答一个简单问题：今天到底用了多少 Token？
+如果你同时使用 Claude Code、Codex、Kimi Code、Oh My Pi、Cursor 等多个 Coding Agent，又接入不同模型账号或中转服务，Token 用量很快就会散落在各个工具的本地记录里。
 
-TokenScope 将散落在本机的用量记录汇总成一个安静、清晰的 macOS 桌面面板。无需登录，也无需填写 API Key；授权个人主目录后，即可查看今天与本月的真实消耗。
+TokenScope 想回答的是更贴近日常开发的问题：新的省 Token 工具到底有没有效果？新装的 skill 是否增加了消耗？调整目录结构后，上下文有没有变重？
+
+TokenScope 将这些散落在本机的用量记录汇总成一个安静、清晰的 macOS 桌面面板。无需登录，也无需填写 API Key；授权个人主目录后，即可查看今天与本月的真实消耗。
 
 一眼看清用量
 

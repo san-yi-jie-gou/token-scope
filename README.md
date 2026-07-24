@@ -19,6 +19,18 @@ It reads only usage metadata. Prompt text, model responses, OAuth data, API keys
 
 The Mac App Store build runs in the App Sandbox. On first launch, select your personal home directory once so TokenScope can read the supported agent folders. The permission is stored as an app-scoped security bookmark and can be changed later from the menu bar icon's right-click menu.
 
+## Why TokenScope
+
+TokenScope started from a personal workflow problem: using Claude Code, Codex, Oh My Pi, Kimi CLI, and several model providers or API relays makes token usage hard to see as one picture.
+
+The questions are practical:
+
+- Did a new token-saving tool actually reduce usage?
+- Did a newly installed skill increase context cost?
+- Did changing a project directory structure make prompts heavier?
+
+TokenScope is not meant to be a billing system. It is a small local dashboard for understanding whether changes in your AI coding setup are making token usage better, worse, or simply different.
+
 ## Screenshots
 
 ![TokenScope today view](Store/Screenshots/TokenScope-today-1280x800.png)

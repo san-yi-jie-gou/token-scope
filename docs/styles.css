@@ -265,6 +265,48 @@ p {
   font-size: 1.12rem;
 }
 
+.why {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(320px, 1.08fr);
+  gap: clamp(40px, 8vw, 96px);
+  align-items: start;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding-top: clamp(34px, 6vw, 72px);
+}
+
+.why-list {
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--line);
+  box-shadow: var(--shadow);
+}
+
+.why-list div {
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  gap: 18px;
+  align-items: center;
+  min-height: 96px;
+  padding: 22px 24px;
+  background: var(--white);
+}
+
+.why-list span {
+  color: var(--cyan);
+  font-size: 0.8rem;
+  font-weight: 850;
+}
+
+.why-list p {
+  color: var(--ink);
+  font-size: 1.04rem;
+  font-weight: 730;
+}
+
 .privacy-list {
   border-top: 1px solid var(--line);
 }
@@ -437,6 +479,7 @@ p {
   }
 
   .intro-grid,
+  .why,
   .split,
   .build {
     grid-template-columns: 1fr;
@@ -487,6 +530,11 @@ p {
 
   .intro-band {
     margin-top: -38px;
+  }
+
+  .why-list div {
+    grid-template-columns: 42px 1fr;
+    padding: 18px;
   }
 
   .agent-grid {
