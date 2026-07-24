@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TokenScope - Native macOS token usage dashboard</title>
+    <meta
+      name="description"
+      content="TokenScope is a native macOS desktop panel and widget for tracking local AI coding agent token usage without storing prompts or account data."
+    >
+    <meta property="og:title" content="TokenScope">
+    <meta property="og:description" content="A native macOS token usage dashboard and desktop widget for AI coding agents.">
+    <meta property="og:image" content="https://san-yi-jie-gou.github.io/token-scope/assets/tokenscope-today.png">
+    <meta name="theme-color" content="#0d1117">
+    <link rel="icon" href="assets/app-icon.png">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="site-header" aria-label="Primary navigation">
+      <a class="brand" href="#top" aria-label="TokenScope home">
+        <img src="assets/app-icon.png" alt="" width="32" height="32">
+        <span>TokenScope</span>
+      </a>
+      <nav>
+        <a href="#privacy">Privacy</a>
+        <a href="#agents">Agents</a>
+        <a href="https://github.com/san-yi-jie-gou/token-scope">GitHub</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <img class="hero-media" src="assets/tokenscope-today.png" alt="TokenScope today dashboard showing token usage by agent">
+        <div class="hero-shade"></div>
+        <div class="hero-content">
+          <p class="eyebrow">Native macOS dashboard</p>
+          <h1 id="hero-title">TokenScope</h1>
+          <p class="hero-copy">
+            Track local AI coding agent token usage from one quiet desktop panel and WidgetKit widget.
+          </p>
+          <div class="hero-actions" aria-label="Primary actions">
+            <a class="button primary" href="https://github.com/san-yi-jie-gou/token-scope">View on GitHub</a>
+            <a class="button secondary" href="https://github.com/san-yi-jie-gou/token-scope#build">Build from source</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="intro-band" aria-label="Highlights">
+        <div class="intro-grid">
+          <div>
+            <strong>Today and month views</strong>
+            <span>Daily totals, monthly charts, and input, output, and cache token breakdowns.</span>
+          </div>
+          <div>
+            <strong>Desktop-first</strong>
+            <span>A native panel that can live behind desktop icons or float above windows.</span>
+          </div>
+          <div>
+            <strong>WidgetKit included</strong>
+            <span>Small and medium widgets keep aggregate usage visible at a glance.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section split" id="privacy">
+        <div class="section-copy">
+          <p class="eyebrow">Local by design</p>
+          <h2>Usage metadata, not your conversations.</h2>
+          <p>
+            TokenScope reads local usage records and displays aggregate counts. Prompt text,
+            model responses, OAuth data, API keys, and provider configuration are not persisted
+            or displayed.
+          </p>
+        </div>
+        <div class="privacy-list" aria-label="Privacy checks">
+          <div>
+            <span class="checkmark" aria-hidden="true"></span>
+            <p>No prompt or response storage</p>
+          </div>
+          <div>
+            <span class="checkmark" aria-hidden="true"></span>
+            <p>App Sandbox compatible</p>
+          </div>
+          <div>
+            <span class="checkmark" aria-hidden="true"></span>
+            <p>Localhost-only widget bridge</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section gallery" aria-labelledby="month-title">
+        <div class="gallery-copy">
+          <p class="eyebrow">Monthly rhythm</p>
+          <h2 id="month-title">See usage patterns across the current month.</h2>
+        </div>
+        <img src="assets/tokenscope-month.png" alt="TokenScope month dashboard with a per-day usage chart">
+      </section>
+
+      <section class="section agents" id="agents" aria-labelledby="agents-title">
+        <div class="section-copy">
+          <p class="eyebrow">Agent coverage</p>
+          <h2 id="agents-title">Built for the tools already leaving local traces.</h2>
+        </div>
+        <ul class="agent-grid">
+          <li>Codex</li>
+          <li>Claude Code</li>
+          <li>Kimi Code</li>
+          <li>OpenCode</li>
+          <li>Gemini CLI</li>
+          <li>GitHub Copilot</li>
+          <li>Cursor</li>
+          <li>Qoder</li>
+          <li>Windsurf</li>
+          <li>Cline</li>
+          <li>Trae</li>
+          <li>Oh My Pi</li>
+        </ul>
+      </section>
+
+      <section class="section build" aria-labelledby="build-title">
+        <div class="section-copy">
+          <p class="eyebrow">Open source</p>
+          <h2 id="build-title">MIT licensed and ready to build.</h2>
+          <p>Requires macOS 14+, Xcode 16+, and XcodeGen.</p>
+        </div>
+        <div class="terminal" aria-label="Build commands">
+          <code>make test</code>
+          <code>make run</code>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>TokenScope 1.0.0</span>
+      <a href="https://github.com/san-yi-jie-gou/token-scope/blob/main/LICENSE">MIT License</a>
+    </footer>
+  </body>
+</html>
