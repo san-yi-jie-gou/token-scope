@@ -77,10 +77,14 @@ struct DesktopWidgetView: View {
                 store.refresh(userInitiated: true)
             } label: {
                 Image(systemName: "arrow.clockwise")
-                    .symbolEffect(
-                        .rotate,
-                        options: .repeat(.continuous),
-                        isActive: store.isRefreshing && !reduceMotion
+                    .rotationEffect(
+                        .degrees(store.isRefreshing && !reduceMotion ? 360 : 0)
+                    )
+                    .animation(
+                        store.isRefreshing && !reduceMotion
+                            ? .linear(duration: 1).repeatForever(autoreverses: false)
+                            : .default,
+                        value: store.isRefreshing
                     )
                     .frame(width: 18, height: 18)
             }
