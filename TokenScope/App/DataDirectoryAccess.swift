@@ -6,7 +6,7 @@ enum DataDirectoryAccessError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .accessDenied:
-            return "无法持续访问所选目录，请重新选择你的个人主目录。"
+            return L10n.string("dataAccess.error.accessDenied")
         }
     }
 }

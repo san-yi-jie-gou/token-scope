@@ -77,9 +77,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @objc private func chooseDataDirectory() {
         let openPanel = NSOpenPanel()
-        openPanel.title = "授权 TokenScope 读取用量数据"
-        openPanel.message = "请选择你的个人主目录。TokenScope 只会读取其中 Coding Agent 的本地用量记录。"
-        openPanel.prompt = "授权"
+        openPanel.title = L10n.string("dataAccess.panel.title")
+        openPanel.message = L10n.string("dataAccess.panel.message")
+        openPanel.prompt = L10n.string("dataAccess.panel.prompt")
         openPanel.canChooseFiles = false
         openPanel.canChooseDirectories = true
         openPanel.allowsMultipleSelection = false
@@ -94,7 +94,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             panel?.show()
         } catch {
             let alert = NSAlert()
-            alert.messageText = "无法授权数据目录"
+            alert.messageText = L10n.string("dataAccess.error.title")
             alert.informativeText = error.localizedDescription
             alert.alertStyle = .warning
             alert.runModal()
@@ -110,7 +110,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             }
         } catch {
             let alert = NSAlert()
-            alert.messageText = "无法更改登录启动设置"
+            alert.messageText = L10n.string("loginItem.error.title")
             alert.informativeText = error.localizedDescription
             alert.alertStyle = .warning
             alert.runModal()
@@ -133,7 +133,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.delegate = self
 
         let includesCache = NSMenuItem(
-            title: "包含缓存",
+            title: L10n.string("menu.includesCache"),
             action: #selector(toggleIncludesCache),
             keyEquivalent: ""
         )
@@ -144,26 +144,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(.separator())
 
         let dataDirectory = NSMenuItem(
-            title: "数据目录…",
+            title: L10n.string("menu.dataDirectory"),
             action: #selector(chooseDataDirectory),
             keyEquivalent: ""
         )
         dataDirectory.target = self
         menu.addItem(dataDirectory)
 
-        let floating = NSMenuItem(title: "浮在窗口上方", action: #selector(toggleFloating), keyEquivalent: "")
+        let floating = NSMenuItem(title: L10n.string("menu.floatAboveWindows"), action: #selector(toggleFloating), keyEquivalent: "")
         floating.target = self
         menu.addItem(floating)
         floatingItem = floating
 
-        let login = NSMenuItem(title: "登录时启动", action: #selector(toggleLaunchAtLogin), keyEquivalent: "")
+        let login = NSMenuItem(title: L10n.string("menu.launchAtLogin"), action: #selector(toggleLaunchAtLogin), keyEquivalent: "")
         login.target = self
         menu.addItem(login)
         loginItem = login
 
         menu.addItem(.separator())
 
-        let quit = NSMenuItem(title: "退出 TokenScope", action: #selector(quit), keyEquivalent: "q")
+        let quit = NSMenuItem(title: L10n.string("menu.quit"), action: #selector(quit), keyEquivalent: "q")
         quit.target = self
         menu.addItem(quit)
 

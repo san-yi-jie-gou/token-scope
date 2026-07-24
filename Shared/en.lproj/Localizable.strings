@@ -1,0 +1,53 @@
+"range.today" = "Today";
+"range.month" = "This Month";
+
+"metric.input" = "Input";
+"metric.output" = "Output";
+"metric.cache" = "Cache";
+
+"desktop.hide" = "Hide";
+"desktop.subtitle" = "Local AI token usage";
+"desktop.rangePicker" = "Range";
+"desktop.refresh" = "Refresh usage";
+"desktop.energyLabel" = "TOKEN ENERGY";
+"desktop.callCount" = "%@ calls";
+"desktop.totalAccessibility" = "Total usage %@ tokens, %@";
+"desktop.noSources.today" = "No sources today";
+"desktop.noSources.month" = "No sources this month";
+"desktop.sourceShare" = "%@ share %@";
+"desktop.authorizeDataDirectory" = "Authorize data directory";
+"desktop.noRecords.today" = "No token records today";
+"desktop.noRecords.month" = "No token records this month";
+
+"chart.dailyUsage" = "Daily usage";
+"chart.hoverCallCount" = "· %d calls";
+"chart.peak" = "Peak %@";
+"chart.dateAxis" = "Date";
+"chart.selectedDate" = "Selected date";
+"chart.monthAccessibility" = "Daily token usage this month";
+
+"sourceRow.accessibility" = "%@, %@ tokens, share %@";
+
+"widget.staleAccessibility" = "Data may be stale";
+"widget.tokensWithCache" = "tokens · with cache";
+"widget.tokensWithoutCache" = "tokens · without cache";
+"widget.staleSuffix" = "· stale";
+"widget.tokensWithCacheAndCalls" = "tokens · with cache · %d calls";
+"widget.tokensWithoutCacheAndCalls" = "tokens · without cache · %d calls";
+"widget.noRecords" = "No records";
+"widget.hiddenAgents" = "+%d more";
+"widget.description" = "View local Coding Agent token usage.";
+
+"dataAccess.panel.title" = "Allow TokenScope to Read Usage Data";
+"dataAccess.panel.message" = "Select your personal home directory. TokenScope only reads local usage records from Coding Agent folders inside it.";
+"dataAccess.panel.prompt" = "Allow";
+"dataAccess.error.title" = "Unable to Authorize Data Directory";
+"dataAccess.error.accessDenied" = "Unable to keep accessing the selected directory. Please choose your personal home directory again.";
+
+"loginItem.error.title" = "Unable to Change Login Startup Setting";
+
+"menu.includesCache" = "Include Cache";
+"menu.dataDirectory" = "Data Directory…";
+"menu.floatAboveWindows" = "Float Above Windows";
+"menu.launchAtLogin" = "Launch at Login";
+"menu.quit" = "Quit TokenScope";

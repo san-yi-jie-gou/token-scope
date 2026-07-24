@@ -1,0 +1,53 @@
+"range.today" = "Hoy";
+"range.month" = "Este mes";
+
+"metric.input" = "Entrada";
+"metric.output" = "Salida";
+"metric.cache" = "Caché";
+
+"desktop.hide" = "Ocultar";
+"desktop.subtitle" = "Uso local de tokens de IA";
+"desktop.rangePicker" = "Periodo";
+"desktop.refresh" = "Actualizar uso";
+"desktop.energyLabel" = "ENERGÍA TOKEN";
+"desktop.callCount" = "%@ llamadas";
+"desktop.totalAccessibility" = "Uso total %@ tokens, %@";
+"desktop.noSources.today" = "Sin fuentes hoy";
+"desktop.noSources.month" = "Sin fuentes este mes";
+"desktop.sourceShare" = "%@ representa %@";
+"desktop.authorizeDataDirectory" = "Autorizar directorio de datos";
+"desktop.noRecords.today" = "No hay registros de Token hoy";
+"desktop.noRecords.month" = "No hay registros de Token este mes";
+
+"chart.dailyUsage" = "Uso diario";
+"chart.hoverCallCount" = "· %d llamadas";
+"chart.peak" = "Pico %@";
+"chart.dateAxis" = "Fecha";
+"chart.selectedDate" = "Fecha seleccionada";
+"chart.monthAccessibility" = "Uso diario de Token este mes";
+
+"sourceRow.accessibility" = "%@, %@ tokens, representa %@";
+
+"widget.staleAccessibility" = "Los datos pueden estar desactualizados";
+"widget.tokensWithCache" = "tokens · con caché";
+"widget.tokensWithoutCache" = "tokens · sin caché";
+"widget.staleSuffix" = "· obsoleto";
+"widget.tokensWithCacheAndCalls" = "tokens · con caché · %d llamadas";
+"widget.tokensWithoutCacheAndCalls" = "tokens · sin caché · %d llamadas";
+"widget.noRecords" = "Sin registros";
+"widget.hiddenAgents" = "+%d más";
+"widget.description" = "Consulta el uso local de tokens de Coding Agent.";
+
+"dataAccess.panel.title" = "Permitir que TokenScope lea datos de uso";
+"dataAccess.panel.message" = "Selecciona tu directorio personal. TokenScope solo lee registros locales de uso de carpetas de Coding Agent dentro de él.";
+"dataAccess.panel.prompt" = "Permitir";
+"dataAccess.error.title" = "No se pudo autorizar el directorio de datos";
+"dataAccess.error.accessDenied" = "No se pudo mantener el acceso al directorio seleccionado. Elige de nuevo tu directorio personal.";
+
+"loginItem.error.title" = "No se pudo cambiar el inicio de sesión";
+
+"menu.includesCache" = "Incluir caché";
+"menu.dataDirectory" = "Directorio de datos…";
+"menu.floatAboveWindows" = "Flotar sobre ventanas";
+"menu.launchAtLogin" = "Abrir al iniciar sesión";
+"menu.quit" = "Salir de TokenScope";

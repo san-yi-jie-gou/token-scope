@@ -10,12 +10,16 @@
 		0106C648BF2C4AAF0C48C277 /* TokenScopeWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7C678819A67E91B787B12430 /* TokenScopeWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		12EA2CD7D93CF1D6332710FB /* UsageModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE25C377157A930F1A7AB07E /* UsageModels.swift */; };
 		15387725ECC83909E0772255 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0367ED2A3F74D44511EB6891 /* Assets.xcassets */; };
+		159F4D11E67BD2B09FA5D8EC /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = FF3B49F5AD72ADFFBD3DC875 /* Localizable.strings */; };
+		1A2831A646830CC8ACBEACF9 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = FF3B49F5AD72ADFFBD3DC875 /* Localizable.strings */; };
 		2BDCD65CE3E2E66566E6B2A8 /* UsageScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4833309985BF8CD77152400 /* UsageScanner.swift */; };
 		2F66F454729E378FEC0645AD /* UsageStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB93A5A31C3BAD2726DBEA9C /* UsageStore.swift */; };
 		384E9178A9E4B3B5979EA8EA /* TokenScopeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = F68E78FB0EC0D9FE0C67CAF9 /* TokenScopeWidget.swift */; };
 		3C2BB42400783387A17F25CA /* UsageParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F25882203C06C472043A9528 /* UsageParserTests.swift */; };
 		487ADBDE2DF42EC122320405 /* JSONLineReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE4DDBEB97F07D2CBCDE1DFF /* JSONLineReader.swift */; };
 		504951E19AD8606F7B5BB88D /* WidgetUsageSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45B9D18B9101DEE126D66832 /* WidgetUsageSnapshot.swift */; };
+		5392F74B737F28DD1CE46A70 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33982636B56ABF271D3B51C6 /* L10n.swift */; };
+		64AD6DCA3A5AC027DAFF14DF /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33982636B56ABF271D3B51C6 /* L10n.swift */; };
 		6EFAA6456708C69E628AE6FE /* WidgetSnapshotClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DB075275FF0472AD9CDB7C8 /* WidgetSnapshotClient.swift */; };
 		788D6F176DFE32D6A883CEB6 /* WidgetLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A80D1E47B20D015FFEE03D95 /* WidgetLayout.swift */; };
 		7D005DA6B57D70F615CA90C3 /* DesktopPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47F644AD8A0E78439816B2E2 /* DesktopPanel.swift */; };
@@ -68,20 +72,26 @@
 		1026A4EFCAF318C2CAB7776E /* UsageParsers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageParsers.swift; sourceTree = "<group>"; };
 		10DB95ABF63963B8BF42EEAF /* WidgetSnapshotPublisher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshotPublisher.swift; sourceTree = "<group>"; };
 		153FCA6BE8AACC18B743D16F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		24C22D7B2954C8C55EC8580A /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
 		261FD4404D6F81C98F9E9DED /* TokenFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenFormatter.swift; sourceTree = "<group>"; };
+		33982636B56ABF271D3B51C6 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
+		34DC86DAF68A8594E2338360 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		45B9D18B9101DEE126D66832 /* WidgetUsageSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetUsageSnapshot.swift; sourceTree = "<group>"; };
 		47F644AD8A0E78439816B2E2 /* DesktopPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopPanel.swift; sourceTree = "<group>"; };
 		550932DE6895D66FD6A7F198 /* TokenScopeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TokenScopeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		66BD2B4B04841D06A739EA0C /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
 		6DB075275FF0472AD9CDB7C8 /* WidgetSnapshotClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshotClient.swift; sourceTree = "<group>"; };
 		7C678819A67E91B787B12430 /* TokenScopeWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TokenScopeWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		7F39021C37E769C66823DCF1 /* DesktopWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopWidgetView.swift; sourceTree = "<group>"; };
 		97612B7B59C36A84E99E14E0 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		A42390E082BC5DF25E5EDEBF /* TokenScope.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TokenScope.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A50309978CD8DCECB298AD75 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = ko.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A80D1E47B20D015FFEE03D95 /* WidgetLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetLayout.swift; sourceTree = "<group>"; };
 		D0F523000EA216CCA34F90BF /* DataDirectoryAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataDirectoryAccess.swift; sourceTree = "<group>"; };
 		D1044F6946B3C0D0DB296CC2 /* WidgetSnapshotServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshotServer.swift; sourceTree = "<group>"; };
 		EA0CA568F530D6D66F97AA29 /* TokenScopeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenScopeApp.swift; sourceTree = "<group>"; };
 		EE4DDBEB97F07D2CBCDE1DFF /* JSONLineReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONLineReader.swift; sourceTree = "<group>"; };
+		F21CCDF6306A4343E85DF58E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		F25882203C06C472043A9528 /* UsageParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageParserTests.swift; sourceTree = "<group>"; };
 		F4833309985BF8CD77152400 /* UsageScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageScanner.swift; sourceTree = "<group>"; };
 		F68E78FB0EC0D9FE0C67CAF9 /* TokenScopeWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenScopeWidget.swift; sourceTree = "<group>"; };
@@ -149,6 +159,8 @@
 		88EB83D43E1E7EE0CED25F49 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				33982636B56ABF271D3B51C6 /* L10n.swift */,
+				FF3B49F5AD72ADFFBD3DC875 /* Localizable.strings */,
 				6DB075275FF0472AD9CDB7C8 /* WidgetSnapshotClient.swift */,
 				45B9D18B9101DEE126D66832 /* WidgetUsageSnapshot.swift */,
 			);
@@ -209,6 +221,7 @@
 			buildConfigurationList = 831AB3A0D334A4D1CC7E79B0 /* Build configuration list for PBXNativeTarget "TokenScopeWidget" */;
 			buildPhases = (
 				5D2206FB7E62110CCD0BD738 /* Sources */,
+				8B008CA2BBBCA4C31F543663 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -265,6 +278,10 @@
 			knownRegions = (
 				Base,
 				en,
+				es,
+				ja,
+				ko,
+				"zh-Hans",
 			);
 			mainGroup = 5C4208F0261C9094693B0741;
 			minimizedProjectReferenceProxies = 1;
@@ -285,7 +302,16 @@
 			buildActionMask = 2147483647;
 			files = (
 				15387725ECC83909E0772255 /* Assets.xcassets in Resources */,
+				159F4D11E67BD2B09FA5D8EC /* Localizable.strings in Resources */,
 				8289759601109734D9603F51 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8B008CA2BBBCA4C31F543663 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A2831A646830CC8ACBEACF9 /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -304,6 +330,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5392F74B737F28DD1CE46A70 /* L10n.swift in Sources */,
 				384E9178A9E4B3B5979EA8EA /* TokenScopeWidget.swift in Sources */,
 				FE89D0DAAB1CA215EA70F95B /* WidgetSnapshotClient.swift in Sources */,
 				BA359C7558369CE7A75DC998 /* WidgetUsageSnapshot.swift in Sources */,
@@ -319,6 +346,7 @@
 				7D005DA6B57D70F615CA90C3 /* DesktopPanel.swift in Sources */,
 				AB13E4D3DE7F5FEA90AA7E19 /* DesktopWidgetView.swift in Sources */,
 				487ADBDE2DF42EC122320405 /* JSONLineReader.swift in Sources */,
+				64AD6DCA3A5AC027DAFF14DF /* L10n.swift in Sources */,
 				D0B1641BD4857AC8CE77EEDA /* TokenFormatter.swift in Sources */,
 				A91568E5CCD7E8C715D80573 /* TokenScopeApp.swift in Sources */,
 				12EA2CD7D93CF1D6332710FB /* UsageModels.swift in Sources */,
@@ -347,6 +375,21 @@
 			targetProxy = C202E3A62821EC9031445647 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		FF3B49F5AD72ADFFBD3DC875 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				F21CCDF6306A4343E85DF58E /* en */,
+				66BD2B4B04841D06A739EA0C /* es */,
+				24C22D7B2954C8C55EC8580A /* ja */,
+				A50309978CD8DCECB298AD75 /* ko */,
+				34DC86DAF68A8594E2338360 /* zh-Hans */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		23CB99BD7201167EDA330413 /* Release */ = {

@@ -1,0 +1,53 @@
+"range.today" = "今天";
+"range.month" = "本月";
+
+"metric.input" = "输入";
+"metric.output" = "输出";
+"metric.cache" = "缓存";
+
+"desktop.hide" = "隐藏";
+"desktop.subtitle" = "本地 AI Token 用量";
+"desktop.rangePicker" = "统计周期";
+"desktop.refresh" = "刷新用量";
+"desktop.energyLabel" = "TOKEN 能量";
+"desktop.callCount" = "%@ 次调用";
+"desktop.totalAccessibility" = "总消耗 %@ tokens，%@";
+"desktop.noSources.today" = "今天暂无来源";
+"desktop.noSources.month" = "本月暂无来源";
+"desktop.sourceShare" = "%@ 占比 %@";
+"desktop.authorizeDataDirectory" = "授权数据目录";
+"desktop.noRecords.today" = "今天还没有 Token 记录";
+"desktop.noRecords.month" = "本月还没有 Token 记录";
+
+"chart.dailyUsage" = "每日消耗";
+"chart.hoverCallCount" = "· %d 次";
+"chart.peak" = "峰值 %@";
+"chart.dateAxis" = "日期";
+"chart.selectedDate" = "选中日期";
+"chart.monthAccessibility" = "本月每日 Token 消耗";
+
+"sourceRow.accessibility" = "%@，%@ tokens，占比 %@";
+
+"widget.staleAccessibility" = "数据可能已过期";
+"widget.tokensWithCache" = "tokens · 含缓存";
+"widget.tokensWithoutCache" = "tokens · 不含缓存";
+"widget.staleSuffix" = "· 旧数据";
+"widget.tokensWithCacheAndCalls" = "tokens · 含缓存 · %d 次调用";
+"widget.tokensWithoutCacheAndCalls" = "tokens · 不含缓存 · %d 次调用";
+"widget.noRecords" = "暂无记录";
+"widget.hiddenAgents" = "+%d 其他";
+"widget.description" = "查看本地 Coding Agent 的 Token 消耗。";
+
+"dataAccess.panel.title" = "授权 TokenScope 读取用量数据";
+"dataAccess.panel.message" = "请选择你的个人主目录。TokenScope 只会读取其中 Coding Agent 的本地用量记录。";
+"dataAccess.panel.prompt" = "授权";
+"dataAccess.error.title" = "无法授权数据目录";
+"dataAccess.error.accessDenied" = "无法持续访问所选目录，请重新选择你的个人主目录。";
+
+"loginItem.error.title" = "无法更改登录启动设置";
+
+"menu.includesCache" = "包含缓存";
+"menu.dataDirectory" = "数据目录…";
+"menu.floatAboveWindows" = "浮在窗口上方";
+"menu.launchAtLogin" = "登录时启动";
+"menu.quit" = "退出 TokenScope";

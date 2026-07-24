@@ -6,8 +6,8 @@ enum WidgetUsageRange: String, Codable, Equatable {
 
     var title: String {
         switch self {
-        case .today: return "今天"
-        case .month: return "本月"
+        case .today: return L10n.string("range.today")
+        case .month: return L10n.string("range.month")
         }
     }
 }

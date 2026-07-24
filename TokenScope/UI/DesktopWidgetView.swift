@@ -60,7 +60,7 @@ struct DesktopWidgetView: View {
                 .strokeBorder(Color.primary.opacity(0.14), lineWidth: 1)
         }
         .contextMenu {
-            Button("隐藏", systemImage: "eye.slash") { onHide() }
+            Button(L10n.string("desktop.hide"), systemImage: "eye.slash") { onHide() }
         }
     }
 
@@ -75,14 +75,14 @@ struct DesktopWidgetView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("TokenScope")
                     .font(.system(size: 15, weight: .semibold))
-                Text("本地 AI Token 用量")
+                Text(L10n.string("desktop.subtitle"))
                     .font(.system(size: 10))
                     .foregroundStyle(.tertiary)
             }
 
             Spacer(minLength: 6)
 
-            Picker("统计周期", selection: $store.range) {
+            Picker(L10n.string("desktop.rangePicker"), selection: $store.range) {
                 ForEach(UsageRange.allCases) { range in
                     Text(range.title).tag(range)
                 }
@@ -107,8 +107,8 @@ struct DesktopWidgetView: View {
             }
             .buttonStyle(.plain)
             .disabled(store.isRefreshing || !store.hasDataDirectoryAccess)
-            .help("刷新用量")
-            .accessibilityLabel("刷新用量")
+            .help(L10n.string("desktop.refresh"))
+            .accessibilityLabel(L10n.string("desktop.refresh"))
         }
         .frame(height: 40)
     }
@@ -140,7 +140,7 @@ struct DesktopWidgetView: View {
                 .frame(width: TokenScopeStyle.ringDiameter, height: TokenScopeStyle.ringDiameter)
 
                 VStack(spacing: 3) {
-                    Text("TOKEN 能量")
+                    Text(L10n.string("desktop.energyLabel"))
                         .font(.system(size: 10, weight: .medium, design: .monospaced))
                         .foregroundStyle(TokenScopeStyle.accent)
 
@@ -156,7 +156,7 @@ struct DesktopWidgetView: View {
                         .foregroundStyle(.tertiary)
 
                     if displayedTotal > 0 {
-                        Text("\(TokenFormatter.compact(Int64(summary.eventCount))) 次调用")
+                        Text(L10n.format("desktop.callCount", TokenFormatter.compact(Int64(summary.eventCount))))
                             .font(.system(size: 10, weight: .medium, design: .monospaced))
                             .foregroundStyle(TokenScopeStyle.accent)
                             .monospacedDigit()
@@ -175,16 +175,16 @@ struct DesktopWidgetView: View {
         .frame(height: WidgetLayout.energyCoreHeight)
         .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: effectiveHighlightedSourceID)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("总消耗 \(TokenFormatter.compact(displayedTotal)) tokens，\(coreCaption)")
+        .accessibilityLabel(L10n.format("desktop.totalAccessibility", TokenFormatter.compact(displayedTotal), coreCaption))
     }
 
     private var coreCaption: String {
         guard displayedTotal > 0,
               let source = highlightedSource
         else {
-            return store.range == .today ? "今天暂无来源" : "本月暂无来源"
+            return store.range == .today ? L10n.string("desktop.noSources.today") : L10n.string("desktop.noSources.month")
         }
-        return "\(source.source.displayName) 占比 \(percentageLabel(for: source))"
+        return L10n.format("desktop.sourceShare", source.source.displayName, percentageLabel(for: source))
     }
 
     private var highlightedSource: SourceUsageSummary? {
@@ -200,7 +200,7 @@ struct DesktopWidgetView: View {
                 Button {
                     store.onRequestDataDirectoryAccess?()
                 } label: {
-                    Label("授权数据目录", systemImage: "folder.badge.plus")
+                    Label(L10n.string("desktop.authorizeDataDirectory"), systemImage: "folder.badge.plus")
                 }
                 .buttonStyle(.borderless)
                 .font(.system(size: 11, weight: .medium))
@@ -208,7 +208,7 @@ struct DesktopWidgetView: View {
             } else if summary.sources.isEmpty {
                 HStack(spacing: 8) {
                     Image(systemName: "clock")
-                    Text(store.range == .today ? "今天还没有 Token 记录" : "本月还没有 Token 记录")
+                    Text(store.range == .today ? L10n.string("desktop.noRecords.today") : L10n.string("desktop.noRecords.month"))
                 }
                 .font(.system(size: 11))
                 .foregroundStyle(.tertiary)
@@ -233,11 +233,11 @@ struct DesktopWidgetView: View {
 
     private var footer: some View {
         HStack(spacing: 9) {
-            MetricLabel(systemImage: "arrow.up", title: "输入", value: summary.tokens.input)
-            MetricLabel(systemImage: "arrow.down", title: "输出", value: summary.tokens.output)
+            MetricLabel(systemImage: "arrow.up", title: L10n.string("metric.input"), value: summary.tokens.input)
+            MetricLabel(systemImage: "arrow.down", title: L10n.string("metric.output"), value: summary.tokens.output)
             MetricLabel(
                 systemImage: "internaldrive",
-                title: "缓存",
+                title: L10n.string("metric.cache"),
                 value: summary.tokens.cacheRead + summary.tokens.cacheWrite
             )
 
@@ -348,7 +348,7 @@ private struct MonthlyUsageChart: View {
     var body: some View {
         VStack(spacing: 5) {
             HStack {
-                Text("每日消耗")
+                Text(L10n.string("chart.dailyUsage"))
                     .font(.system(size: 10, weight: .medium, design: .monospaced))
                     .foregroundStyle(.secondary)
 
@@ -361,10 +361,10 @@ private struct MonthlyUsageChart: View {
                             Text("·")
                             Text(TokenFormatter.compact(chartTotal(hoveredDay.tokens)))
                                 .fontWeight(.semibold)
-                            Text("· \(hoveredDay.eventCount) 次")
+                            Text(L10n.format("chart.hoverCallCount", hoveredDay.eventCount))
                         }
                     } else {
-                        Text("峰值 \(TokenFormatter.compact(peak))")
+                        Text(L10n.format("chart.peak", TokenFormatter.compact(peak)))
                     }
                 }
                 .font(.system(size: 9, design: .monospaced))
@@ -376,7 +376,7 @@ private struct MonthlyUsageChart: View {
                 ForEach(days) { day in
                     ForEach(day.sources.sorted { $0.source.id < $1.source.id }) { source in
                         BarMark(
-                            x: .value("日期", day.date, unit: .day),
+                            x: .value(L10n.string("chart.dateAxis"), day.date, unit: .day),
                             y: .value("Tokens", chartTotal(source.tokens))
                         )
                         .foregroundStyle(source.source.tint)
@@ -386,7 +386,7 @@ private struct MonthlyUsageChart: View {
                 }
 
                 if let hoveredDay {
-                    RuleMark(x: .value("选中日期", hoveredDay.date, unit: .day))
+                    RuleMark(x: .value(L10n.string("chart.selectedDate"), hoveredDay.date, unit: .day))
                         .foregroundStyle(TokenScopeStyle.accent.opacity(0.55))
                         .lineStyle(StrokeStyle(lineWidth: 1, dash: [3, 3]))
                 }
@@ -418,8 +418,8 @@ private struct MonthlyUsageChart: View {
             .frame(height: 52)
             .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: includesCache)
             .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: hoveredDate)
-            .accessibilityLabel("本月每日 Token 消耗")
-            .accessibilityValue("峰值 \(TokenFormatter.compact(peak))")
+            .accessibilityLabel(L10n.string("chart.monthAccessibility"))
+            .accessibilityValue(L10n.format("chart.peak", TokenFormatter.compact(peak)))
         }
     }
 
@@ -537,7 +537,12 @@ private struct SourceChannelRow: View {
         .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: isHighlighted)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(
-            "\(summary.source.displayName)，\(TokenFormatter.compact(displayedTotal)) tokens，占比 \(percentageLabel)"
+            L10n.format(
+                "sourceRow.accessibility",
+                summary.source.displayName,
+                TokenFormatter.compact(displayedTotal),
+                percentageLabel
+            )
         )
     }
 }

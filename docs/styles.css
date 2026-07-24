@@ -82,6 +82,22 @@ nav a:hover {
   color: var(--white);
 }
 
+.language-select {
+  min-height: 32px;
+  max-width: 132px;
+  padding: 0 9px;
+  color: var(--white);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.language-select:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
 .hero {
   position: relative;
   min-height: clamp(620px, 88svh, 860px);
@@ -393,6 +409,10 @@ p {
     font-size: 0.9rem;
   }
 
+  .language-select {
+    max-width: 108px;
+  }
+
   .hero {
     min-height: 760px;
   }
@@ -446,6 +466,10 @@ p {
   }
 
   nav a[href="#privacy"] {
+    display: none;
+  }
+
+  nav a[href="#agents"] {
     display: none;
   }
 

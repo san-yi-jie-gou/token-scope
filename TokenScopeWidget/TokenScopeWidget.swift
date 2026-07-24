@@ -69,7 +69,7 @@ struct TokenScopeWidgetView: View {
             if isStale {
                 Image(systemName: "clock.badge.exclamationmark")
                     .foregroundStyle(.orange)
-                    .accessibilityLabel("数据可能已过期")
+                    .accessibilityLabel(L10n.string("widget.staleAccessibility"))
             }
             Text(entry.snapshot.range.title)
                 .font(.system(size: 10, weight: .medium))
@@ -87,7 +87,7 @@ struct TokenScopeWidgetView: View {
                     .monospacedDigit()
                     .lineLimit(1)
                     .minimumScaleFactor(0.62)
-                Text(entry.snapshot.includesCache ? "tokens · 含缓存" : "tokens · 不含缓存")
+                Text(entry.snapshot.includesCache ? L10n.string("widget.tokensWithCache") : L10n.string("widget.tokensWithoutCache"))
                     .font(.system(size: 10, weight: .medium))
                     .foregroundStyle(.secondary)
             }
@@ -95,8 +95,8 @@ struct TokenScopeWidgetView: View {
             Spacer(minLength: 0)
 
             HStack(spacing: 10) {
-                compactMetric("输入", value: entry.snapshot.inputTokens)
-                compactMetric("输出", value: entry.snapshot.outputTokens)
+                compactMetric(L10n.string("metric.input"), value: entry.snapshot.inputTokens)
+                compactMetric(L10n.string("metric.output"), value: entry.snapshot.outputTokens)
             }
 
             HStack {
@@ -104,7 +104,7 @@ struct TokenScopeWidgetView: View {
                 Spacer()
                 Text(entry.snapshot.generatedAt, style: .time)
                 if isStale {
-                    Text("· 旧数据")
+                    Text(L10n.string("widget.staleSuffix"))
                         .foregroundStyle(.orange)
                 }
             }
@@ -126,8 +126,8 @@ struct TokenScopeWidgetView: View {
                         .minimumScaleFactor(0.68)
                     Text(
                         entry.snapshot.includesCache
-                            ? "tokens · 含缓存 · \(entry.snapshot.callCount) 次调用"
-                            : "tokens · 不含缓存 · \(entry.snapshot.callCount) 次调用"
+                            ? L10n.format("widget.tokensWithCacheAndCalls", entry.snapshot.callCount)
+                            : L10n.format("widget.tokensWithoutCacheAndCalls", entry.snapshot.callCount)
                     )
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(.secondary)
@@ -136,9 +136,9 @@ struct TokenScopeWidgetView: View {
                 Spacer(minLength: 0)
 
                 HStack(spacing: 12) {
-                    compactMetric("输入", value: entry.snapshot.inputTokens)
-                    compactMetric("输出", value: entry.snapshot.outputTokens)
-                    compactMetric("缓存", value: entry.snapshot.cacheTokens)
+                    compactMetric(L10n.string("metric.input"), value: entry.snapshot.inputTokens)
+                    compactMetric(L10n.string("metric.output"), value: entry.snapshot.outputTokens)
+                    compactMetric(L10n.string("metric.cache"), value: entry.snapshot.cacheTokens)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -148,7 +148,7 @@ struct TokenScopeWidgetView: View {
             VStack(spacing: 8) {
                 if entry.snapshot.agents.isEmpty {
                     ContentUnavailableView {
-                        Label("暂无记录", systemImage: "clock")
+                        Label(L10n.string("widget.noRecords"), systemImage: "clock")
                     }
                 } else {
                     ForEach(entry.snapshot.agents.prefix(visibleAgentLimit)) { agent in
@@ -157,7 +157,7 @@ struct TokenScopeWidgetView: View {
                     Spacer(minLength: 0)
                     HStack(spacing: 4) {
                         if hiddenAgentCount > 0 {
-                            Text("+\(hiddenAgentCount) 其他")
+                            Text(L10n.format("widget.hiddenAgents", hiddenAgentCount))
                         }
                         Spacer()
                         Text(entry.snapshot.alternateRangeTitle)
@@ -290,7 +290,7 @@ struct TokenScopeSystemWidget: Widget {
             TokenScopeWidgetView(entry: entry)
         }
         .configurationDisplayName("TokenScope")
-        .description("查看本地 Coding Agent 的 Token 消耗。")
+        .description(LocalizedStringKey("widget.description"))
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }

@@ -1,0 +1,53 @@
+"range.today" = "今日";
+"range.month" = "今月";
+
+"metric.input" = "入力";
+"metric.output" = "出力";
+"metric.cache" = "キャッシュ";
+
+"desktop.hide" = "非表示";
+"desktop.subtitle" = "ローカル AI トークン使用量";
+"desktop.rangePicker" = "集計期間";
+"desktop.refresh" = "使用量を更新";
+"desktop.energyLabel" = "TOKEN エネルギー";
+"desktop.callCount" = "%@ 回の呼び出し";
+"desktop.totalAccessibility" = "合計 %@ tokens、%@";
+"desktop.noSources.today" = "今日のソースはありません";
+"desktop.noSources.month" = "今月のソースはありません";
+"desktop.sourceShare" = "%@ の割合 %@";
+"desktop.authorizeDataDirectory" = "データディレクトリを許可";
+"desktop.noRecords.today" = "今日の Token 記録はありません";
+"desktop.noRecords.month" = "今月の Token 記録はありません";
+
+"chart.dailyUsage" = "日別使用量";
+"chart.hoverCallCount" = "· %d 回";
+"chart.peak" = "ピーク %@";
+"chart.dateAxis" = "日付";
+"chart.selectedDate" = "選択日";
+"chart.monthAccessibility" = "今月の日別 Token 使用量";
+
+"sourceRow.accessibility" = "%@、%@ tokens、割合 %@";
+
+"widget.staleAccessibility" = "データが古い可能性があります";
+"widget.tokensWithCache" = "tokens · キャッシュ込み";
+"widget.tokensWithoutCache" = "tokens · キャッシュなし";
+"widget.staleSuffix" = "· 古いデータ";
+"widget.tokensWithCacheAndCalls" = "tokens · キャッシュ込み · %d 回の呼び出し";
+"widget.tokensWithoutCacheAndCalls" = "tokens · キャッシュなし · %d 回の呼び出し";
+"widget.noRecords" = "記録なし";
+"widget.hiddenAgents" = "+%d 件";
+"widget.description" = "ローカル Coding Agent の Token 使用量を確認します。";
+
+"dataAccess.panel.title" = "TokenScope に使用量データの読み取りを許可";
+"dataAccess.panel.message" = "個人のホームディレクトリを選択してください。TokenScope はその中の Coding Agent のローカル使用量記録だけを読み取ります。";
+"dataAccess.panel.prompt" = "許可";
+"dataAccess.error.title" = "データディレクトリを許可できません";
+"dataAccess.error.accessDenied" = "選択したディレクトリへの継続アクセスを保持できません。個人のホームディレクトリをもう一度選択してください。";
+
+"loginItem.error.title" = "ログイン時起動設定を変更できません";
+
+"menu.includesCache" = "キャッシュを含める";
+"menu.dataDirectory" = "データディレクトリ…";
+"menu.floatAboveWindows" = "ウィンドウの上に表示";
+"menu.launchAtLogin" = "ログイン時に起動";
+"menu.quit" = "TokenScope を終了";

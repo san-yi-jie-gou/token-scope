@@ -1,0 +1,53 @@
+"range.today" = "오늘";
+"range.month" = "이번 달";
+
+"metric.input" = "입력";
+"metric.output" = "출력";
+"metric.cache" = "캐시";
+
+"desktop.hide" = "숨기기";
+"desktop.subtitle" = "로컬 AI 토큰 사용량";
+"desktop.rangePicker" = "기간";
+"desktop.refresh" = "사용량 새로고침";
+"desktop.energyLabel" = "TOKEN 에너지";
+"desktop.callCount" = "%@회 호출";
+"desktop.totalAccessibility" = "총 사용량 %@ tokens, %@";
+"desktop.noSources.today" = "오늘 소스 없음";
+"desktop.noSources.month" = "이번 달 소스 없음";
+"desktop.sourceShare" = "%@ 비중 %@";
+"desktop.authorizeDataDirectory" = "데이터 디렉터리 권한 허용";
+"desktop.noRecords.today" = "오늘 Token 기록 없음";
+"desktop.noRecords.month" = "이번 달 Token 기록 없음";
+
+"chart.dailyUsage" = "일별 사용량";
+"chart.hoverCallCount" = "· %d회";
+"chart.peak" = "최고 %@";
+"chart.dateAxis" = "날짜";
+"chart.selectedDate" = "선택한 날짜";
+"chart.monthAccessibility" = "이번 달 일별 Token 사용량";
+
+"sourceRow.accessibility" = "%@, %@ tokens, 비중 %@";
+
+"widget.staleAccessibility" = "데이터가 오래되었을 수 있음";
+"widget.tokensWithCache" = "tokens · 캐시 포함";
+"widget.tokensWithoutCache" = "tokens · 캐시 제외";
+"widget.staleSuffix" = "· 오래된 데이터";
+"widget.tokensWithCacheAndCalls" = "tokens · 캐시 포함 · %d회 호출";
+"widget.tokensWithoutCacheAndCalls" = "tokens · 캐시 제외 · %d회 호출";
+"widget.noRecords" = "기록 없음";
+"widget.hiddenAgents" = "+%d개 더";
+"widget.description" = "로컬 Coding Agent의 Token 사용량을 확인합니다.";
+
+"dataAccess.panel.title" = "TokenScope의 사용량 데이터 읽기 허용";
+"dataAccess.panel.message" = "개인 홈 디렉터리를 선택하세요. TokenScope는 그 안의 Coding Agent 로컬 사용량 기록만 읽습니다.";
+"dataAccess.panel.prompt" = "허용";
+"dataAccess.error.title" = "데이터 디렉터리 권한을 허용할 수 없음";
+"dataAccess.error.accessDenied" = "선택한 디렉터리에 계속 접근할 수 없습니다. 개인 홈 디렉터리를 다시 선택하세요.";
+
+"loginItem.error.title" = "로그인 시 실행 설정을 변경할 수 없음";
+
+"menu.includesCache" = "캐시 포함";
+"menu.dataDirectory" = "데이터 디렉터리…";
+"menu.floatAboveWindows" = "창 위에 띄우기";
+"menu.launchAtLogin" = "로그인 시 실행";
+"menu.quit" = "TokenScope 종료";
